@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abitur BW - Gehörbildungstraining Musik v5.2</title>
+    <title>Abitur BW - Gehörbildungstraining Musik v5.4</title>
     <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -17,8 +17,8 @@
     <header class="bg-slate-900 text-white shadow-md py-6 px-4">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight">Gehörbildung Abi BW <span class="text-sm bg-emerald-500 px-2 py-0.5 rounded-md ml-2 text-slate-950">v5.2 Complete</span></h1>
-                <p class="text-sm text-slate-400 mt-1">Simulations- & Trainingsplattform mit allen geforderten Intervallen und Vierklängen</p>
+                <h1 class="text-2xl font-bold tracking-tight">Gehörbildung Abi BW <span class="text-sm bg-amber-500 px-2 py-0.5 rounded-md ml-2 text-slate-950">v5.4 Steinway-Sound</span></h1>
+                <p class="text-sm text-slate-400 mt-1">Echte Konzertflügel-Samples, Rhythmusdiktate & automatische Abläufe</p>
             </div>
             <div id="global-progress" class="hidden bg-slate-800 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">
                 Aufgabe <span id="progress-current">0</span> von <span id="progress-total">0</span>
@@ -27,8 +27,20 @@
     </header>
 
     <!-- Main Content Container -->
-    <main class="flex-grow max-w-4xl w-full mx-auto p-4 flex items-center justify-center">
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 flex items-center justify-center relative">
         
+        <!-- LADE-SCREEN FÜR SAMPLES -->
+        <div id="loading-screen" class="hidden fixed inset-0 bg-slate-900/95 z-50 flex flex-col items-center justify-center text-white p-6">
+            <div class="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+            <h3 class="text-xl font-bold mb-2">Initialisiere Konzertflügel</h3>
+            <p class="text-slate-400 text-sm text-center max-w-sm mb-4">
+                Hochauflösende Steinway-Samples werden geladen, um dir das realistischste Hörerlebnis zu garantieren...
+            </p>
+            <div class="w-64 bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="loading-bar" class="bg-amber-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+
         <!-- START-BILDSCHIRM MIT MODUS-AUSWAHL -->
         <div id="start-screen" class="bg-white rounded-2xl shadow-xl p-6 md:p-10 w-full max-w-2xl text-center fade-in">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-900 rounded-full mb-6 shadow-sm">
@@ -36,7 +48,7 @@
             </div>
             <h2 class="text-3xl font-extrabold text-slate-950 mb-2">Prüfungstraining Gehörbildung</h2>
             <p class="text-slate-600 mb-8 max-w-md mx-auto text-sm">
-                Generiert gesangliche Melodiediktate mit klassischer Kadenzeinführung, Rhythmen sowie alle 9 Vierklänge des Bildungsplans.
+                Generiert gesangliche, tonale Melodiediktate ohne Synkopen mit klassischen Lauf- und Punktierungsstrukturen.
             </p>
 
             <!-- Trainings-Modus Auswahl-Kacheln -->
@@ -45,7 +57,7 @@
                     <div>
                         <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mb-3">I</div>
                         <span class="font-bold text-slate-900 block text-base">Intervalle</span>
-                        <span class="text-xs text-slate-500 mt-1 block">Prime bis Oktave bestimmen.</span>
+                        <span class="text-xs text-slate-500 mt-1 block">Prime bis Oktave bestimmen mit echtem Flügel-Sound.</span>
                     </div>
                     <span class="text-xs font-semibold text-blue-700 mt-4 bg-blue-50 px-2 py-1 rounded-md self-start">10 Aufgaben</span>
                 </button>
@@ -63,7 +75,7 @@
                     <div>
                         <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm mb-3">R</div>
                         <span class="font-bold text-slate-900 block text-base">Rhythmus-Diktat</span>
-                        <span class="text-xs text-slate-500 mt-1 block">4 Takte, 4/4-Takt, Triolen und klassische Motive.</span>
+                        <span class="text-xs text-slate-500 mt-1 block">4 Takte, 4/4-Takt, Triolen und klassische Motive. (Snaredrum)</span>
                     </div>
                     <span class="text-xs font-semibold text-emerald-700 mt-4 bg-emerald-50 px-2 py-1 rounded-md self-start">1 Diktat (11 Läufe)</span>
                 </button>
@@ -90,15 +102,21 @@
 
         <!-- QUIZ- & DIKTAT-BILDSCHIRM -->
         <div id="quiz-screen" class="hidden bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full fade-in">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
+            <div class="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
                 <div>
                     <span id="quiz-type-badge" class="text-xs uppercase tracking-wider font-extrabold px-3 py-1 rounded-full">Kategorie</span>
                     <h3 id="quiz-question-title" class="text-xl font-bold mt-2 text-slate-900">Was hörst du?</h3>
                 </div>
-                <div class="flex gap-2" id="standard-audio-controls">
-                    <button id="btn-replay" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-3 rounded-xl shadow transition cursor-pointer">
-                        Wiederholen
+                <div class="flex items-center gap-3">
+                    <!-- Abbrechen Button, um jederzeit sicher zurück ins Menü zu springen -->
+                    <button id="btn-abort" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-3 py-2 border border-red-200 rounded-xl transition cursor-pointer flex items-center gap-1">
+                        ✕ Abbrechen
                     </button>
+                    <div class="flex gap-2" id="standard-audio-controls">
+                        <button id="btn-replay" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-3 rounded-xl shadow transition cursor-pointer">
+                            Wiederholen
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -126,11 +144,8 @@
                     <button id="btn-diktat-play" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
                         Diesen Lauf abspielen
                     </button>
-                    <button id="btn-diktat-next" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
-                        Nächster Durchgang
-                    </button>
                 </div>
-                <p id="diktat-notice-text" class="text-xs text-slate-500 mt-4 leading-relaxed">Hinweis: Vor jedem Abspielen hören Sie die Kadenzeinführung und 4 Metronom-Schläge als Einzähler.</p>
+                <p id="diktat-notice-text" class="text-xs text-slate-500 mt-4 leading-relaxed">Hinweis: Die Kadenz ist nur im 1. Durchlauf zu hören. Vor jedem Abspielen hören Sie 4 Metronom-Schläge als Einzähler.</p>
             </div>
 
             <!-- Antwort-Buttons Grid (Intervalle & Akkorde) -->
@@ -213,7 +228,7 @@
     </footer>
 
     <script>
-        // RHYTHMISCHE BAUSTEINE (Keine Synkopen mehr!)
+        // RHYTHMISCHE BAUSTEINE (Keine Synkopen!)
         const RHYTHM_1BEAT = [
             { id: "viertel", duration: 1.0, name: "Viertel", offsets: [0], html: `<svg viewBox="0 0 100 80" class="w-full h-14 text-white"><ellipse cx="50" cy="55" rx="6" ry="4.5" fill="currentColor" transform="rotate(-20 50 55)"/><line x1="55" y1="55" x2="55" y2="15" stroke="currentColor" stroke-width="2"/></svg>` },
             { id: "zwei_achtel", duration: 1.0, name: "2 Achtel", offsets: [0, 0.5], html: `<svg viewBox="0 0 100 80" class="w-full h-14 text-white"><ellipse cx="30" cy="55" rx="5" ry="4" fill="currentColor" transform="rotate(-20 30 55)"/><line x1="34" y1="55" x2="34" y2="15" stroke="currentColor" stroke-width="2"/><ellipse cx="70" cy="55" rx="5" ry="4" fill="currentColor" transform="rotate(-20 70 55)"/><line x1="74" y1="55" x2="74" y2="15" stroke="currentColor" stroke-width="2"/><line x1="34" y1="16" x2="74" y2="16" stroke="currentColor" stroke-width="5"/></svg>` },
@@ -255,7 +270,6 @@
             { name: "Reine Oktave", semitones: 12 }
         ];
 
-        // BUGFIX v5.2: Alle 9 ursprünglichen Akkordtypen des Bildungsplans lückenlos wiederhergestellt!
         const CHORDS = [
             { name: "Dur", offsets: [0, 4, 7, 12] },
             { name: "Moll", offsets: [0, 3, 7, 12] },
@@ -276,6 +290,17 @@
         let currentMode = 'mix';
         let currentDiktatStep = 0;
 
+        // HIGH-QUALITY SAMPLER STATE
+        const pianoSamples = {
+            48: "C3", 52: "E3", 55: "G3",
+            60: "C4", 64: "E4", 67: "G4",
+            72: "C5", 76: "E5", 79: "G5",
+            84: "C6"
+        };
+        const audioBuffers = {};
+        let samplesLoaded = false;
+        const sampleBaseUrl = "https://tonejs.github.io/audio/salamander/";
+
         function initAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -286,31 +311,137 @@
             activeAudioNodes = [];
         }
 
+        // Lade alle vordefinierten Steinway Grand Piano Samples parallel herunter
+        async function loadPianoSamples() {
+            if (samplesLoaded) return true;
+            initAudio();
+            
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadingBar = document.getElementById('loading-bar');
+            loadingScreen.classList.remove('hidden');
+
+            const midiNotes = Object.keys(pianoSamples).map(Number);
+            let loadedCount = 0;
+
+            const promises = midiNotes.map(async (midi) => {
+                const noteName = pianoSamples[midi];
+                const url = `${sampleBaseUrl}${noteName}.mp3`;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error("Netzwerkfehler");
+                    const arrayBuffer = await response.arrayBuffer();
+                    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                    audioBuffers[midi] = audioBuffer;
+                } catch (e) {
+                    console.error("Sampler konnte Note nicht laden: " + noteName + ". Synthesizer dient als Fallback.", e);
+                } finally {
+                    loadedCount++;
+                    const percent = Math.round((loadedCount / midiNotes.length) * 100);
+                    loadingBar.style.width = `${percent}%`;
+                }
+            });
+
+            await Promise.all(promises);
+            samplesLoaded = true;
+            loadingScreen.classList.add('hidden');
+            return true;
+        }
+
         function mToFreq(note) { return 440 * Math.pow(2, (note - 69) / 12); }
 
+        // HIGH-FIDELITY SAMPLER WIEDERGABE (Mit automatischem Fallback auf Additive Synthese)
         function playPianoTone(midiNote, startTime, duration, volume = 0.35) {
-            const freq = mToFreq(midiNote);
-            const oscTri = audioCtx.createOscillator();
-            const oscSine = audioCtx.createOscillator();
+            initAudio();
+
+            const keys = Object.keys(audioBuffers).map(Number);
+            
+            // FALLBACK auf den Synthesizer, falls keine Internetverbindung oder Ladefehler
+            if (keys.length === 0) {
+                playSynthPianoTone(midiNote, startTime, duration, volume);
+                return;
+            }
+
+            // Finde das am nächsten gelegene vorrätige Sample
+            let closestMidi = keys[0];
+            let minDiff = Math.abs(midiNote - closestMidi);
+            for (let i = 1; i < keys.length; i++) {
+                let diff = Math.abs(midiNote - keys[i]);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestMidi = keys[i];
+                }
+            }
+
+            const buffer = audioBuffers[closestMidi];
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+
+            // Berechne Pitch-Shifting-Faktor (Halbtonschritt-Abstand)
+            const playbackRate = Math.pow(2, (midiNote - closestMidi) / 12);
+            source.playbackRate.setValueAtTime(playbackRate, startTime);
+
             const gainNode = audioCtx.createGain();
-
-            oscTri.type = 'triangle'; oscTri.frequency.setValueAtTime(freq, startTime);
-            oscSine.type = 'sine'; oscSine.frequency.setValueAtTime(freq * 2, startTime);
-
-            const gTri = audioCtx.createGain(); gTri.gain.setValueAtTime(0.5, startTime);
-            const gSine = audioCtx.createGain(); gSine.gain.setValueAtTime(0.2, startTime);
-
             gainNode.gain.setValueAtTime(0, startTime);
-            gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.002, startTime + duration);
+            gainNode.gain.linearRampToValueAtTime(volume * 1.6, startTime + 0.005); // Sampler-Attack
+            gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-            oscTri.connect(gTri).connect(gainNode);
-            oscSine.connect(gSine).connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            source.connect(gainNode).connect(audioCtx.destination);
+            source.start(startTime);
+            source.stop(startTime + duration);
+            activeAudioNodes.push(source);
+        }
 
-            oscTri.start(startTime); oscSine.start(startTime);
-            oscTri.stop(startTime + duration); oscSine.stop(startTime + duration);
-            activeAudioNodes.push(oscTri, oscSine);
+        // Der original mathematisch optimierte Synthesizer-Klang dient als treuer Fallback-Schutz
+        function playSynthPianoTone(midiNote, startTime, duration, volume = 0.35) {
+            const freq = mToFreq(midiNote);
+            const now = startTime;
+
+            const masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0, now);
+            masterGain.gain.linearRampToValueAtTime(volume, now + 0.006);
+            masterGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            masterGain.connect(audioCtx.destination);
+
+            const hammerOsc = audioCtx.createOscillator();
+            const hammerGain = audioCtx.createGain();
+            hammerOsc.type = 'sine';
+            hammerOsc.frequency.setValueAtTime(freq * 5.7, now);
+            hammerGain.gain.setValueAtTime(volume * 0.45, now);
+            hammerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+            
+            hammerOsc.connect(hammerGain).connect(masterGain);
+            hammerOsc.start(now);
+            hammerOsc.stop(now + 0.03);
+            activeAudioNodes.push(hammerOsc);
+
+            const detuneOffsets = [-3.5, 0, 3.5];
+            detuneOffsets.forEach((detune) => {
+                const harmonics = [
+                    { multiplier: 1.0, weight: 0.55, decayRate: 1.0, type: 'sine' },
+                    { multiplier: 2.0, weight: 0.28, decayRate: 0.65, type: 'sine' },
+                    { multiplier: 3.0, weight: 0.16, decayRate: 0.45, type: 'sine' },
+                    { multiplier: 4.0, weight: 0.09, decayRate: 0.30, type: 'sine' },
+                    { multiplier: 5.0, weight: 0.04, decayRate: 0.18, type: 'triangle' }
+                ];
+
+                harmonics.forEach(h => {
+                    const osc = audioCtx.createOscillator();
+                    const oscGain = audioCtx.createGain();
+
+                    osc.type = h.type;
+                    osc.frequency.setValueAtTime(freq * h.multiplier, now);
+                    osc.detune.setValueAtTime(detune, now);
+
+                    const harmonicDecay = duration * h.decayRate;
+                    oscGain.gain.setValueAtTime(h.weight, now);
+                    oscGain.gain.exponentialRampToValueAtTime(0.001, now + harmonicDecay);
+
+                    osc.connect(oscGain).connect(masterGain);
+                    osc.start(now);
+                    osc.stop(now + harmonicDecay);
+                    activeAudioNodes.push(osc);
+                });
+            });
         }
 
         function playMetronomeClick(startTime, isDownbeat) {
@@ -461,9 +592,16 @@
             return { key: keyObj, notes: notesSequence };
         }
 
-        function selectAndStartMode(mode) {
+        // Lade-Mechanismus vor dem Ausführen von Modifikationen mit Piano
+        async function selectAndStartMode(mode) {
             currentMode = mode;
             initAudio();
+
+            // Nur laden, falls Klavier verwendet wird (Rhythmus braucht nur Snare/Metronom)
+            if (mode !== 'rhythm') {
+                await loadPianoSamples();
+            }
+
             generateQuizStructure(mode);
             showScreen('quiz-screen');
             renderQuestion();
@@ -572,12 +710,10 @@
             const task = quizQuestions[currentIdx];
             let now = audioCtx.currentTime;
             
-            // Töne zuerst einzeln nacheinander abspielen
             task.offsets.forEach((offset, i) => { 
                 playPianoTone(task.rootNote + offset, now + (i * 0.4), 0.5); 
             });
             
-            // Und direkt im Anschluss alle Töne gleichzeitig als harmonischer Zusammenklang
             let simStart = now + (task.offsets.length * 0.4) + 0.3;
             task.offsets.forEach(offset => { 
                 playPianoTone(task.rootNote + offset, simStart, 1.5); 
@@ -596,13 +732,25 @@
                 dotsContainer.appendChild(dot);
             }
 
-            document.getElementById('btn-diktat-play').onclick = () => {
+            const playBtn = document.getElementById('btn-diktat-play');
+            
+            playBtn.disabled = false;
+            playBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl shadow transition flex items-center gap-2 cursor-pointer";
+            playBtn.innerText = "Diesen Lauf abspielen";
+
+            playBtn.onclick = () => {
+                playBtn.disabled = true;
+                playBtn.className = "bg-slate-300 text-slate-500 font-bold px-6 py-3 rounded-xl shadow cursor-not-allowed flex items-center gap-2";
+                playBtn.innerText = "Lauf spielt... Bitte genau zuhören";
+
                 stopAllAudio(); initAudio();
                 let now = audioCtx.currentTime + 0.05;
                 const task = quizQuestions[currentIdx];
 
-                if (task.type === 'melody') {
+                let cadenceDuration = 0;
+                if (task.type === 'melody' && currentDiktatStep === 0) {
                     now = playProceduralCadence(task.melodyData.key, now) + 0.2;
+                    cadenceDuration = 3.6; 
                 }
 
                 for (let c = 0; c < 4; c++) { playMetronomeClick(now + c, c === 0); }
@@ -625,13 +773,21 @@
                         });
                     });
                 }
-            };
-            
-            const nextBtn = document.getElementById('btn-diktat-next');
-            nextBtn.innerText = currentDiktatStep === 10 ? "Diktat abschließen" : "Nächster Durchgang";
-            nextBtn.onclick = () => {
-                if (currentDiktatStep < 10) { currentDiktatStep++; setupDiktatStepUI(); } 
-                else { advanceQuiz(); }
+
+                const barDuration = activeBars.length * 4.0;
+                const totalPlaybackDuration = cadenceDuration + 4.0 + barDuration;
+
+                setTimeout(() => {
+                    if (currentDiktatStep < 10) {
+                        currentDiktatStep++;
+                        setupDiktatStepUI();
+                    } else {
+                        playBtn.disabled = false;
+                        playBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow transition flex items-center gap-2 cursor-pointer";
+                        playBtn.innerText = "Diktat abschließen & Ergebnisse anzeigen";
+                        playBtn.onclick = () => { advanceQuiz(); };
+                    }
+                }, (totalPlaybackDuration + 0.5) * 1000);
             };
         }
 
@@ -877,7 +1033,12 @@
             target.appendChild(svg);
         }
 
+        // Event-Binding für Abbruch und Replay-Steuerung
         document.getElementById('btn-replay').addEventListener('click', () => { playCurrentGehoerTask(); });
+        document.getElementById('btn-abort').addEventListener('click', () => {
+            stopAllAudio();
+            showScreen('start-screen');
+        });
         document.getElementById('btn-next').addEventListener('click', () => { advanceQuiz(); });
         document.getElementById('btn-restart').addEventListener('click', () => { showScreen('start-screen'); });
     </script>
