@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abitur BW - Gehörbildungstraining Musik v5.4</title>
+    <title>Abitur BW - Gehörbildungstraining Musik</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -18,7 +18,7 @@
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Gehörbildung Abi BW <span class="text-sm bg-amber-500 px-2 py-0.5 rounded-md ml-2 text-slate-950">v5.4 Steinway-Sound</span></h1>
-                <p class="text-sm text-slate-400 mt-1">Echte Konzertflügel-Samples, Rhythmusdiktate & automatische Abläufe</p>
+                <p class="text-sm text-slate-400 mt-1">Intervalle, Akkorde, Rhythmusdiktate & Melodiediktate im Abitur Format</p>
             </div>
             <div id="global-progress" class="hidden bg-slate-800 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">
                 Aufgabe <span id="progress-current">0</span> von <span id="progress-total">0</span>
@@ -48,7 +48,7 @@
             </div>
             <h2 class="text-3xl font-extrabold text-slate-950 mb-2">Prüfungstraining Gehörbildung</h2>
             <p class="text-slate-600 mb-8 max-w-md mx-auto text-sm">
-                Generiert gesangliche, tonale Melodiediktate ohne Synkopen mit klassischen Lauf- und Punktierungsstrukturen.
+                Trainiere dein Können um perfekt auf das Abitur BW vorbereitet zu sein!
             </p>
 
             <!-- Trainings-Modus Auswahl-Kacheln -->
@@ -57,7 +57,7 @@
                     <div>
                         <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mb-3">I</div>
                         <span class="font-bold text-slate-900 block text-base">Intervalle</span>
-                        <span class="text-xs text-slate-500 mt-1 block">Prime bis Oktave bestimmen mit echtem Flügel-Sound.</span>
+                        <span class="text-xs text-slate-500 mt-1 block">Prime bis Oktave bestimmen.</span>
                     </div>
                     <span class="text-xs font-semibold text-blue-700 mt-4 bg-blue-50 px-2 py-1 rounded-md self-start">10 Aufgaben</span>
                 </button>
@@ -75,25 +75,25 @@
                     <div>
                         <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm mb-3">R</div>
                         <span class="font-bold text-slate-900 block text-base">Rhythmus-Diktat</span>
-                        <span class="text-xs text-slate-500 mt-1 block">4 Takte, 4/4-Takt, Triolen und klassische Motive. (Snaredrum)</span>
+                        <span class="text-xs text-slate-500 mt-1 block">4 Takte, 4/4-Takt (Snaredrum)</span>
                     </div>
-                    <span class="text-xs font-semibold text-emerald-700 mt-4 bg-emerald-50 px-2 py-1 rounded-md self-start">1 Diktat (11 Läufe)</span>
+                    <span class="text-xs font-semibold text-emerald-700 mt-4 bg-emerald-50 px-2 py-1 rounded-md self-start">1 Diktat</span>
                 </button>
 
                 <button onclick="selectAndStartMode('melody')" class="group p-5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-400 rounded-2xl transition text-left cursor-pointer flex flex-col justify-between">
                     <div>
                         <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm mb-3">M</div>
                         <span class="font-bold text-slate-900 block text-base">Melodiediktat</span>
-                        <span class="text-xs text-slate-500 mt-1 block">Harmonisch gebundene Linien, Punktierungen, Achtelläufe.</span>
+                        <span class="text-xs text-slate-500 mt-1 block">Skalen- und Dreiklangsmelodik mit bis zu 3 Vorzeichen.</span>
                     </div>
-                    <span class="text-xs font-semibold text-amber-700 mt-4 bg-amber-50 px-2 py-1 rounded-md self-start">1 Diktat (11 Läufe)</span>
+                    <span class="text-xs font-semibold text-amber-700 mt-4 bg-amber-50 px-2 py-1 rounded-md self-start">1 Diktat</span>
                 </button>
 
                 <button onclick="selectAndStartMode('mix')" class="group p-5 bg-gradient-to-br from-slate-900 to-slate-800 hover:from-blue-950 hover:to-slate-900 border border-slate-800 rounded-2xl transition text-left cursor-pointer shadow-md flex flex-col justify-between sm:col-span-2">
                     <div>
                         <div class="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-sm mb-3 shadow-sm">★</div>
                         <span class="font-bold text-white block text-base">Vollständige Gehörbildungs-Prüfung</span>
-                        <span class="text-slate-300 text-xs mt-1 block">Kompletter Ablauf: Rhythmus, Melodie mit Kadenz, 5 Intervalle, 5 Vierklänge.</span>
+                        <span class="text-slate-300 text-xs mt-1 block">Kompletter Ablauf: Rhythmus, Melodie, 5 Intervalle, 5 Vierklänge.</span>
                     </div>
                     <span class="text-xs font-semibold text-emerald-400 mt-4 bg-slate-800 px-2 py-1 rounded-md self-start">Abitur-Simulation (12 Aufgaben)</span>
                 </button>
