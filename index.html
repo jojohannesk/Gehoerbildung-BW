@@ -98,6 +98,15 @@
                     <span class="text-xs font-semibold text-emerald-400 mt-4 bg-slate-800 px-2 py-1 rounded-md self-start">Abitur-Simulation (12 Aufgaben)</span>
                 </button>
             </div>
+
+            <!-- EXKLUSIVER MOBIL-HINWEIS GEGEN SAFARI-STUMMSCHALTUNG -->
+            <div class="bg-amber-50 border border-amber-200 text-amber-900 text-xs p-4 rounded-xl flex items-start gap-3 text-left">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <div>
+                    <p class="font-bold">Wichtig für Smartphone-Nutzer (besonders iPhones):</p>
+                    <p class="mt-1">Solltest du keinen Ton hören, vergewissere dich bitte, dass der <strong>physische Stummschalter</strong> an der Geräteseite auf "Laut" (Klingeln) steht. Safari sperrt Audiowiedergaben im Lautlos-Modus vollständig.</p>
+                </div>
+            </div>
         </div>
 
         <!-- QUIZ- & DIKTAT-BILDSCHIRM -->
@@ -704,6 +713,26 @@
                 setTimeout(() => { playCurrentGehoerTask(); }, 300);
             }
         }
+
+        // UNLOCK HELPER FÜR MOBILE (Gezielter One-Shot-Klick für unbeschränkten Audio-Sicherheits-Bypass)
+        function unlockMobileAudio() {
+            initAudio();
+            try {
+                // Ein extrem kurzer, leerer Puffer wird sofort abgespielt
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start(0);
+            } catch (e) {
+                console.warn("Mobile Web Audio Unlock-Versuch fehlgeschlagen:", e);
+            }
+            // Event Listener entfernen, sobald der erste Klick erfolgt ist
+            document.removeEventListener('click', unlockMobileAudio);
+            document.removeEventListener('touchstart', unlockMobileAudio);
+        }
+        document.addEventListener('click', unlockMobileAudio);
+        document.addEventListener('touchstart', unlockMobileAudio);
 
         function playCurrentGehoerTask() {
             stopAllAudio(); initAudio();
