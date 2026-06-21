@@ -3,214 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abitur BW - Gehörbildungstraining Musik</title>
+    <title>Abitur BW - Gehörbildungstraining Musik v9.5 Master</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ABCJS für exakte Notentext-Wiedergabe -->
+    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.2/dist/abcjs-basic-min.js"></script>
     <style>
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        body { -webkit-tap-highlight-color: transparent; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .scale-in { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .metronome-dot { transition: background-color 0.05s ease-in-out, transform 0.05s ease-in-out; }
+        .metronome-dot.active { background-color: #6366f1; transform: scale(1.4); }
+        .svg-scroll-container { -webkit-overflow-scrolling: touch; }
+        .svg-scroll-container::-webkit-scrollbar { height: 6px; }
+        .svg-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        #notation-container svg, #rhythm-notation-container svg { max-width: 100%; height: auto; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between antialiased">
 
     <!-- Header -->
-    <header class="bg-slate-900 text-white shadow-md py-6 px-4">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight">Gehörbildung Abi BW <span class="text-sm bg-amber-500 px-2 py-0.5 rounded-md ml-2 text-slate-950">v5.4 Steinway-Sound</span></h1>
-                <p class="text-sm text-slate-400 mt-1">Intervalle, Akkorde, Rhythmusdiktate & Melodiediktate im Abitur Format</p>
+    <header class="bg-slate-900 text-white shadow-xl py-5 px-4 sticky top-0 z-40 backdrop-blur-md bg-slate-900/95">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="text-center sm:text-left">
+                <h1 class="text-2xl font-extrabold tracking-tight flex items-center justify-center gap-2">
+                    Gehörbildung Abi BW 
+                    <span class="text-xs bg-indigo-500 px-2 py-0.5 rounded-md text-white">Master</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-1">Prozedurale Klassik-Generierung & exakte Notenschrift</p>
             </div>
-            <div id="global-progress" class="hidden bg-slate-800 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">
-                Aufgabe <span id="progress-current">0</span> von <span id="progress-total">0</span>
+            <div id="global-progress" class="hidden bg-slate-800 px-4 py-2 rounded-full text-sm font-medium border border-slate-700 shadow-sm">
+                Aufgabe <span id="progress-current" class="text-indigo-400 font-bold">0</span> von <span id="progress-total">0</span>
             </div>
         </div>
     </header>
 
     <!-- Main Content Container -->
-    <main class="flex-grow max-w-4xl w-full mx-auto p-4 flex items-center justify-center relative">
+    <main class="flex-grow max-w-5xl w-full mx-auto p-4 md:p-8 flex items-center justify-center relative">
         
         <!-- LADE-SCREEN FÜR SAMPLES -->
         <div id="loading-screen" class="hidden fixed inset-0 bg-slate-900/95 z-50 flex flex-col items-center justify-center text-white p-6">
-            <div class="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+            <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <h3 class="text-xl font-bold mb-2">Initialisiere Konzertflügel</h3>
             <p class="text-slate-400 text-sm text-center max-w-sm mb-4">
                 Hochauflösende Steinway-Samples werden geladen, um dir das realistischste Hörerlebnis zu garantieren...
             </p>
             <div class="w-64 bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div id="loading-bar" class="bg-amber-500 h-full w-0 transition-all duration-300"></div>
+                <div id="loading-bar" class="bg-indigo-500 h-full w-0 transition-all duration-300 rounded-full"></div>
             </div>
         </div>
 
-        <!-- START-BILDSCHIRM MIT MODUS-AUSWAHL -->
-        <div id="start-screen" class="bg-white rounded-2xl shadow-xl p-6 md:p-10 w-full max-w-2xl text-center fade-in">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-900 rounded-full mb-6 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+        <!-- SKIP CONFIRMATION MODAL -->
+        <div id="skip-modal" class="hidden fixed inset-0 bg-slate-900/80 z-[60] flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl scale-in">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900 mb-2">Diktat überspringen?</h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">Wenn du abbrichst, wird diese Aufgabe als nicht gelöst gewertet und du siehst sofort die Lösung. Bist du sicher?</p>
+                <div class="flex flex-col gap-3">
+                    <button onclick="closeSkipModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-xl transition cursor-pointer">Weiter üben</button>
+                    <button onclick="confirmSkip()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition cursor-pointer">Ja, überspringen</button>
+                </div>
             </div>
-            <h2 class="text-3xl font-extrabold text-slate-950 mb-2">Prüfungstraining Gehörbildung</h2>
-            <p class="text-slate-600 mb-8 max-w-md mx-auto text-sm">
-                Trainiere dein Können um perfekt auf das Abitur BW vorbereitet zu sein!
+        </div>
+
+        <!-- START-BILDSCHIRM -->
+        <div id="start-screen" class="bg-white rounded-3xl shadow-2xl p-6 md:p-10 w-full text-center fade-in">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-indigo-50 text-indigo-900 rounded-2xl mb-6 shadow-sm border border-indigo-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-950 mb-3 tracking-tight">Prüfungstraining Gehörbildung</h2>
+            <p class="text-slate-500 mb-8 max-w-md mx-auto text-sm md:text-base leading-relaxed">
+                Komplexe Rhythmusdiktate und prozedural generierte, klassische Melodiediktate im Stil von Haydn und Mozart.
             </p>
 
-            <!-- Trainings-Modus Auswahl-Kacheln -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mb-6">
-                <button onclick="selectAndStartMode('intervals')" class="group p-5 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-400 rounded-2xl transition text-left cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mb-3">I</div>
-                        <span class="font-bold text-slate-900 block text-base">Intervalle</span>
-                        <span class="text-xs text-slate-500 mt-1 block">Prime bis Oktave bestimmen.</span>
-                    </div>
-                    <span class="text-xs font-semibold text-blue-700 mt-4 bg-blue-50 px-2 py-1 rounded-md self-start">10 Aufgaben</span>
+            <div class="mb-8 inline-block">
+                <button id="btn-audio-test" class="text-sm bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold px-4 py-2.5 rounded-xl border border-slate-200 transition cursor-pointer flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                    Audio testen & freischalten
                 </button>
-
-                <button onclick="selectAndStartMode('chords')" class="group p-5 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-400 rounded-2xl transition text-left cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm mb-3">A</div>
-                        <span class="font-bold text-slate-900 block text-base">Vierklänge (Alle 9 Typen)</span>
-                        <span class="text-xs text-slate-500 mt-1 block">Dur, Moll, Sixte ajoutée, übermäßig, Septakkorde und vermindert.</span>
-                    </div>
-                    <span class="text-xs font-semibold text-purple-700 mt-4 bg-purple-50 px-2 py-1 rounded-md self-start">10 Aufgaben</span>
-                </button>
-
-                <button onclick="selectAndStartMode('rhythm')" class="group p-5 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-400 rounded-2xl transition text-left cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm mb-3">R</div>
-                        <span class="font-bold text-slate-900 block text-base">Rhythmus-Diktat</span>
-                        <span class="text-xs text-slate-500 mt-1 block">4 Takte, 4/4-Takt (Snaredrum)</span>
-                    </div>
-                    <span class="text-xs font-semibold text-emerald-700 mt-4 bg-emerald-50 px-2 py-1 rounded-md self-start">1 Diktat</span>
-                </button>
-
-                <button onclick="selectAndStartMode('melody')" class="group p-5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-400 rounded-2xl transition text-left cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm mb-3">M</div>
-                        <span class="font-bold text-slate-900 block text-base">Melodiediktat</span>
-                        <span class="text-xs text-slate-500 mt-1 block">Skalen- und Dreiklangsmelodik mit bis zu 3 Vorzeichen.</span>
-                    </div>
-                    <span class="text-xs font-semibold text-amber-700 mt-4 bg-amber-50 px-2 py-1 rounded-md self-start">1 Diktat</span>
-                </button>
-
-                <button onclick="selectAndStartMode('mix')" class="group p-5 bg-gradient-to-br from-slate-900 to-slate-800 hover:from-blue-950 hover:to-slate-900 border border-slate-800 rounded-2xl transition text-left cursor-pointer shadow-md flex flex-col justify-between sm:col-span-2">
-                    <div>
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-sm mb-3 shadow-sm">★</div>
-                        <span class="font-bold text-white block text-base">Vollständige Gehörbildungs-Prüfung</span>
-                        <span class="text-slate-300 text-xs mt-1 block">Kompletter Ablauf: Rhythmus, Melodie, 5 Intervalle, 5 Vierklänge.</span>
-                    </div>
-                    <span class="text-xs font-semibold text-emerald-400 mt-4 bg-slate-800 px-2 py-1 rounded-md self-start">Abitur-Simulation (12 Aufgaben)</span>
-                </button>
+                <p class="text-[11px] text-slate-400 mt-2 max-w-xs mx-auto leading-tight">(Wichtig für iPhone-Nutzer: Einmal klicken, um den Sound im Browser zu erlauben)</p>
             </div>
 
-            <!-- EXKLUSIVER MOBIL-HINWEIS GEGEN SAFARI-STUMMSCHALTUNG -->
-            <div class="bg-amber-50 border border-amber-200 text-amber-900 text-xs p-4 rounded-xl flex items-start gap-3 text-left">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                <div>
-                    <p class="font-bold">Wichtig für Smartphone-Nutzer (besonders iPhones):</p>
-                    <p class="mt-1">Solltest du keinen Ton hören, vergewissere dich bitte, dass der <strong>physische Stummschalter</strong> an der Geräteseite auf "Laut" (Klingeln) steht. Safari sperrt Audiowiedergaben im Lautlos-Modus vollständig.</p>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mb-2">
+                <button onclick="selectAndStartMode('intervals')" class="group p-5 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-2xl transition-all text-left cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition">I</div>
+                        <span class="font-bold text-slate-900 block text-base">Intervalle</span>
+                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">Prime bis Oktave bestimmen mit echtem Flügel-Sound.</span>
+                    </div>
+                    <span class="text-[11px] font-bold text-indigo-700 mt-4 bg-indigo-50 px-2.5 py-1 rounded-md self-start">10 Aufgaben</span>
+                </button>
+
+                <button onclick="selectAndStartMode('chords')" class="group p-5 bg-white hover:bg-purple-50 border border-slate-200 hover:border-purple-300 rounded-2xl transition-all text-left cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition">A</div>
+                        <span class="font-bold text-slate-900 block text-base">Vierklänge</span>
+                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">Dur, Moll, Sixte ajoutée, übermäßig, Septakkorde.</span>
+                    </div>
+                    <span class="text-[11px] font-bold text-purple-700 mt-4 bg-purple-50 px-2.5 py-1 rounded-md self-start">10 Aufgaben</span>
+                </button>
+
+                <button onclick="selectAndStartMode('rhythm')" class="group p-5 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-2xl transition-all text-left cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition">R</div>
+                        <span class="font-bold text-slate-900 block text-base">Rhythmus-Diktat</span>
+                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">16tel-Noten, Punktierungen, Triolen. Min. 2 Vokabeln pro Takt!</span>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-700 mt-4 bg-emerald-50 px-2.5 py-1 rounded-md self-start">1 Diktat (11 Läufe)</span>
+                </button>
+
+                <button onclick="selectAndStartMode('melody')" class="group p-5 bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-2xl transition-all text-left cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition">M</div>
+                        <span class="font-bold text-slate-900 block text-base">Melodiediktat (Klassik)</span>
+                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">Haydn/Mozart-Stil. Dynamisch generiert, echte Notenschrift.</span>
+                    </div>
+                    <span class="text-[11px] font-bold text-amber-700 mt-4 bg-amber-50 px-2.5 py-1 rounded-md self-start">1 Diktat (11 Läufe)</span>
+                </button>
+
+                <button onclick="selectAndStartMode('mix')" class="group p-5 bg-gradient-to-br from-slate-900 to-slate-800 hover:from-indigo-950 hover:to-slate-900 border border-slate-800 rounded-2xl transition-all text-left cursor-pointer shadow-md flex flex-col justify-between sm:col-span-2 hover:-translate-y-1 hover:shadow-xl">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition shadow-sm">★</div>
+                        <span class="font-bold text-white block text-base">Vollständige Gehörbildungs-Prüfung</span>
+                        <span class="text-slate-300 text-xs mt-1 block leading-relaxed">Kompletter Ablauf: Rhythmus, klassische Melodie mit I-IV-V-I Kadenz, 5 Intervalle, 5 Vierklänge.</span>
+                    </div>
+                    <span class="text-[11px] font-bold text-indigo-400 mt-4 bg-slate-800 px-2.5 py-1 rounded-md self-start">Abitur-Simulation (12 Aufgaben)</span>
+                </button>
             </div>
         </div>
 
         <!-- QUIZ- & DIKTAT-BILDSCHIRM -->
-        <div id="quiz-screen" class="hidden bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full fade-in">
-            <div class="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
+        <div id="quiz-screen" class="hidden bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full fade-in">
+            <div class="flex flex-wrap justify-between items-start border-b border-slate-100 pb-4 mb-6 gap-3">
                 <div>
-                    <span id="quiz-type-badge" class="text-xs uppercase tracking-wider font-extrabold px-3 py-1 rounded-full">Kategorie</span>
+                    <span id="quiz-type-badge" class="text-[11px] uppercase tracking-wider font-extrabold px-3 py-1 rounded-full">Kategorie</span>
                     <h3 id="quiz-question-title" class="text-xl font-bold mt-2 text-slate-900">Was hörst du?</h3>
                 </div>
-                <div class="flex items-center gap-3">
-                    <!-- Abbrechen Button, um jederzeit sicher zurück ins Menü zu springen -->
-                    <button id="btn-abort" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-3 py-2 border border-red-200 rounded-xl transition cursor-pointer flex items-center gap-1">
-                        ✕ Abbrechen
+                <div class="flex items-center gap-2">
+                    <button id="btn-abort" class="bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold text-xs px-3 py-2 border border-slate-200 rounded-xl transition cursor-pointer">
+                        ✕ Menü
                     </button>
                     <div class="flex gap-2" id="standard-audio-controls">
-                        <button id="btn-replay" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-3 rounded-xl shadow transition cursor-pointer">
+                        <button id="btn-replay" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-5 py-3 rounded-xl shadow-sm transition cursor-pointer flex items-center gap-2 text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                             Wiederholen
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- GEHÖRBILDUNGS-ORIENTIERUNG (Für Melodiediktat) -->
             <div id="melody-orientation-box" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6 fade-in">
-                <h4 class="font-bold text-amber-900 text-sm uppercase tracking-wide mb-2">Kenndaten & Lage der Melodie:</h4>
+                <h4 class="font-bold text-amber-900 text-[11px] uppercase tracking-wide mb-3">Kenndaten & Lage der Melodie:</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-slate-700 mb-4">
-                    <div><span class="font-semibold text-slate-900">Tonart:</span> <span id="melody-key-display" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200">-</span></div>
-                    <div><span class="font-semibold text-slate-900">Startton:</span> <span id="melody-first-note-display" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200">-</span></div>
-                    <div><span class="font-semibold text-slate-900">Genaue Lage:</span> <span id="melody-register-display" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200">-</span></div>
+                    <div class="bg-white p-2 rounded-lg border border-amber-100"><span class="font-semibold text-slate-900 block text-[11px] mb-1 text-amber-800">Tonart</span> <span id="melody-key-display" class="font-mono font-bold">-</span></div>
+                    <div class="bg-white p-2 rounded-lg border border-amber-100"><span class="font-semibold text-slate-900 block text-[11px] mb-1 text-amber-800">Startton</span> <span id="melody-first-note-display" class="font-mono font-bold">-</span></div>
+                    <div class="bg-white p-2 rounded-lg border border-amber-100"><span class="font-semibold text-slate-900 block text-[11px] mb-1 text-amber-800">Kadenz</span> <span id="melody-register-display" class="font-mono font-bold">I-IV-V-I</span></div>
                 </div>
                 <button id="btn-melody-orient" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs px-4 py-3 rounded-xl shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
                     🎹 I-IV-V-I Kadenz + Startton spielen
                 </button>
             </div>
 
-            <!-- DIKTAT-STEUERUNGS PANEL (Rhythmus & Melodie) -->
             <div id="diktat-panel" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-6 my-4 text-center fade-in">
-                <div class="text-xs font-bold tracking-wider text-slate-400 uppercase mb-1">Ablaufsteuerung (Viertel = 60 BPM)</div>
-                <div class="text-lg font-black text-slate-950 mb-4" id="diktat-step-title">-</div>
+                <div class="text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-1">Ablaufsteuerung (Viertel = 60 BPM)</div>
+                <div class="text-lg font-black text-slate-950 mb-5" id="diktat-step-title">-</div>
                 
+                <div class="flex justify-center gap-4 mb-6" id="visual-metronome">
+                    <div class="metronome-dot w-3 h-3 rounded-full bg-slate-300"></div>
+                    <div class="metronome-dot w-3 h-3 rounded-full bg-slate-300"></div>
+                    <div class="metronome-dot w-3 h-3 rounded-full bg-slate-300"></div>
+                    <div class="metronome-dot w-3 h-3 rounded-full bg-slate-300"></div>
+                </div>
+
                 <div class="flex justify-center gap-1.5 mb-6 overflow-x-auto py-2" id="diktat-steps-progress"></div>
 
-                <div class="flex flex-wrap justify-center gap-3">
-                    <button id="btn-diktat-play" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
+                <div class="flex flex-col gap-3">
+                    <button id="btn-diktat-play" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold px-6 py-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 cursor-pointer text-sm">
                         Diesen Lauf abspielen
                     </button>
+                    <button id="btn-diktat-skip" class="text-[11px] text-slate-400 hover:text-red-500 underline transition cursor-pointer mt-1">Überspringen & Lösung anzeigen</button>
                 </div>
-                <p id="diktat-notice-text" class="text-xs text-slate-500 mt-4 leading-relaxed">Hinweis: Die Kadenz ist nur im 1. Durchlauf zu hören. Vor jedem Abspielen hören Sie 4 Metronom-Schläge als Einzähler.</p>
+                <p id="diktat-notice-text" class="text-[11px] text-slate-500 mt-4 leading-relaxed">Hinweis: Die Kadenz ist nur im 1. Durchlauf zu hören. Vor jedem Abspielen hören Sie 4 Metronom-Schläge als Einzähler.</p>
             </div>
 
-            <!-- Antwort-Buttons Grid (Intervalle & Akkorde) -->
             <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 my-6"></div>
 
-            <!-- Feedback Bereich -->
-            <div id="feedback-container" class="hidden rounded-xl p-4 my-6 flex items-center justify-between border">
+            <div id="feedback-container" class="hidden rounded-xl p-4 my-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border gap-4">
                 <div class="flex items-center gap-3">
-                    <div id="feedback-icon" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"></div>
+                    <div id="feedback-icon" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"></div>
                     <div>
                         <p id="feedback-text" class="font-bold text-lg"></p>
                         <p id="feedback-subtext" class="text-sm text-slate-600"></p>
                     </div>
                 </div>
-                <button id="btn-next" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl shadow transition cursor-pointer">
-                    Weiter
-                </button>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button id="btn-replay-feedback" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-4 py-3 rounded-xl transition cursor-pointer text-sm flex-1 sm:flex-none">
+                        Nochmal anhören
+                    </button>
+                    <button id="btn-next" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-sm transition cursor-pointer text-sm flex-1 sm:flex-none">
+                        Weiter
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- ERGEBNIS-BILDSCHIRM -->
-        <div id="result-screen" class="hidden bg-white rounded-2xl shadow-xl p-6 md:p-10 w-full fade-in">
+        <div id="result-screen" class="hidden bg-white rounded-3xl shadow-2xl p-6 md:p-10 w-full fade-in">
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 text-green-700 rounded-full mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
-                <h2 class="text-3xl font-extrabold text-slate-950">Auswertung deiner Session</h2>
-                <p class="text-slate-500 mt-2" id="result-mode-text">-</p>
+                <h2 class="text-3xl font-extrabold text-slate-950">Auswertung</h2>
+                <p class="text-slate-500 mt-2 text-sm" id="result-mode-text">-</p>
                 
-                <div id="score-block" class="mt-6 inline-block bg-slate-50 border border-slate-200 px-6 py-4 rounded-2xl">
-                    <span class="text-4xl font-black text-blue-900" id="result-score">0 / 0</span>
-                    <span class="block text-xs uppercase tracking-wider text-slate-500 font-bold mt-1">Richtige Antworten</span>
+                <div id="score-block" class="mt-6 inline-block bg-slate-50 border border-slate-200 px-8 py-4 rounded-2xl shadow-sm">
+                    <span class="text-4xl font-black text-indigo-900" id="result-score">0 / 0</span>
+                    <span class="block text-[11px] uppercase tracking-wider text-slate-500 font-bold mt-1">Richtige Antworten</span>
                 </div>
             </div>
 
-            <!-- LÖSUNG RHYTHMUS -->
-            <div id="rhythm-result-container" class="hidden mb-6 border border-slate-200 rounded-2xl p-5 bg-slate-900 text-white">
-                <h3 class="font-bold text-sm text-emerald-400 uppercase tracking-wider mb-4">𝄢 Lösung: Rhythmus-Diktat</h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="rhythm-sheet-music"></div>
+            <div id="rhythm-result-container" class="hidden mb-6 border border-slate-200 rounded-2xl p-5 bg-slate-900 text-white shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-sm text-emerald-400 uppercase tracking-wider">𝄢 Lösung: Rhythmus-Diktat</h3>
+                    <button id="btn-play-rhythm-solution" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition cursor-pointer flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                        Anhören
+                    </button>
+                </div>
+                <div class="bg-white text-black p-4 rounded-xl border border-slate-800 overflow-x-auto svg-scroll-container">
+                    <div id="rhythm-notation-container" class="w-full"></div>
+                </div>
             </div>
 
-            <!-- LÖSUNG MELODIE (SVG) -->
-            <div id="melody-result-container" class="hidden mb-6 border border-slate-200 rounded-2xl p-5 bg-slate-950 text-white">
-                <h3 class="font-bold text-sm text-amber-400 uppercase tracking-wider mb-2">𝄢 Lösung: Melodiediktat</h3>
+            <div id="melody-result-container" class="hidden mb-6 border border-slate-200 rounded-2xl p-5 bg-slate-950 text-white shadow-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-sm text-amber-400 uppercase tracking-wider">𝄢 Lösung: Melodiediktat</h3>
+                    <button id="btn-play-melody-solution" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition cursor-pointer flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                        Anhören
+                    </button>
+                </div>
                 <p id="melody-result-meta" class="text-xs text-slate-400 mb-4"></p>
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 overflow-x-auto">
-                    <div id="melody-vector-staff" class="min-w-[750px] h-36 flex items-center justify-between"></div>
+                <div class="bg-white text-black p-4 rounded-xl border border-slate-800 overflow-x-auto svg-scroll-container">
+                    <div id="notation-container" class="w-full"></div>
                 </div>
             </div>
 
             <div id="detail-table-block">
                 <h3 class="font-bold text-lg text-slate-900 mb-3">Detail-Auswertung Gehör-Aufgaben:</h3>
-                <div class="overflow-x-auto border border-slate-100 rounded-xl mb-8">
+                <div class="overflow-x-auto border border-slate-100 rounded-xl mb-8 shadow-sm">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-100 text-slate-600 text-sm font-semibold">
+                            <tr class="bg-slate-50 border-b border-slate-100 text-slate-600 text-[11px] uppercase font-semibold">
                                 <th class="p-3 pl-4">Nr.</th>
                                 <th class="p-3">Kategorie</th>
                                 <th class="p-3">Gesucht war</th>
@@ -224,7 +272,7 @@
             </div>
 
             <div class="text-center">
-                <button id="btn-restart" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg px-8 py-4 rounded-xl shadow transition cursor-pointer">
+                <button id="btn-restart" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-md transition cursor-pointer">
                     Zum Hauptmenü
                 </button>
             </div>
@@ -232,29 +280,30 @@
 
     </main>
 
-    <footer class="bg-slate-100 border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500">
+    <footer class="bg-slate-200 border-t border-slate-300 py-6 px-4 text-center text-[11px] text-slate-500">
         Konzipiert nach den offiziellen Gehörbildungs-Anforderungen des Gymnasialen Musik-Abiturs Baden-Württemberg.
     </footer>
 
     <script>
-        // RHYTHMISCHE BAUSTEINE (Keine Synkopen!)
+        // =========================================================
+        // 1. RHYTHMISCHE VOKABULARE
+        // =========================================================
         const RHYTHM_1BEAT = [
-            { id: "viertel", duration: 1.0, name: "Viertel", offsets: [0], html: `<svg viewBox="0 0 100 80" class="w-full h-14 text-white"><ellipse cx="50" cy="55" rx="6" ry="4.5" fill="currentColor" transform="rotate(-20 50 55)"/><line x1="55" y1="55" x2="55" y2="15" stroke="currentColor" stroke-width="2"/></svg>` },
-            { id: "zwei_achtel", duration: 1.0, name: "2 Achtel", offsets: [0, 0.5], html: `<svg viewBox="0 0 100 80" class="w-full h-14 text-white"><ellipse cx="30" cy="55" rx="5" ry="4" fill="currentColor" transform="rotate(-20 30 55)"/><line x1="34" y1="55" x2="34" y2="15" stroke="currentColor" stroke-width="2"/><ellipse cx="70" cy="55" rx="5" ry="4" fill="currentColor" transform="rotate(-20 70 55)"/><line x1="74" y1="55" x2="74" y2="15" stroke="currentColor" stroke-width="2"/><line x1="34" y1="16" x2="74" y2="16" stroke="currentColor" stroke-width="5"/></svg>` },
-            { id: "triole", duration: 1.0, name: "Triole", offsets: [0, 0.333, 0.666], html: `<svg viewBox="0 0 100 80" class="w-full h-14 text-white"><ellipse cx="20" cy="55" rx="4.5" ry="3.5" fill="currentColor" transform="rotate(-20 20 55)"/><line x1="24" y1="55" x2="24" y2="15" stroke="currentColor" stroke-width="1.8"/><ellipse cx="50" cy="55" rx="4.5" ry="3.5" fill="currentColor" transform="rotate(-20 50 55)"/><line x1="54" y1="55" x2="54" y2="15" stroke="currentColor" stroke-width="1.8"/><ellipse cx="80" cy="55" rx="4.5" ry="3.5" fill="currentColor" transform="rotate(-20 80 55)"/><line x1="84" y1="55" x2="84" y2="15" stroke="currentColor" stroke-width="1.8"/><line x1="24" y1="16" x2="84" y2="16" stroke="currentColor" stroke-width="4"/><text x="52" y="10" font-size="11" font-weight="black" text-anchor="middle" fill="currentColor">3</text></svg>` }
+            { id: "viertel", duration: 1.0, name: "Viertel", offsets: [0] },
+            { id: "zwei_achtel", duration: 1.0, name: "2 Achtel", offsets: [0, 0.5] },
+            { id: "vier_sechzehntel", duration: 1.0, name: "4 Sechzehntel", offsets: [0, 0.25, 0.5, 0.75] },
+            { id: "sechz_achtel", duration: 1.0, name: "2 Sechzehntel + 1 Achtel", offsets: [0, 0.25, 0.5] },
+            { id: "achtel_sechz", duration: 1.0, name: "1 Achtel + 2 Sechzehntel", offsets: [0, 0.5, 0.75] },
+            { id: "triole_1", duration: 1.0, name: "Triole", offsets: [0, 0.333, 0.666] },
+            { id: "punk_acht_sechz", duration: 1.0, name: "Punktierte Achtel + Sechzehntel", offsets: [0, 0.75] },
+            { id: "sechz_punk_acht", duration: 1.0, name: "Sechzehntel + Punktierte Achtel", offsets: [0, 0.25] }
         ];
 
         const RHYTHM_2BEAT = [
-            { id: "halbe", duration: 2.0, name: "Halbe Note", offsets: [0], html: `<svg viewBox="0 0 200 80" class="w-full h-14 text-white"><ellipse cx="100" cy="55" rx="6" ry="4.5" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-20 100 55)"/><line x1="105" y1="55" x2="105" y2="15" stroke="currentColor" stroke-width="2"/></svg>` }
-        ];
-
-        // MASTER-TONARTEN-DATENBANK (Streng kalibriert auf Ambitus f [53] bis h'' [83])
-        const MELODY_KEYS = [
-            { name: "C-Dur", isMajor: true, root: 60, scale: [53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83], names: ["f","g","a","h","c'","d'","e'","f'","g'","a'","h'","c''","d''","e''","f''","g''","a''","h''"], rootIdx: 4, chordTones: [4, 6, 8, 11, 13, 15], subdomTones: [0, 3, 7, 9, 12, 14], domTones: [1, 5, 10, 12, 17], cadenceOffsets: [0, 4, 7, 12,  0, 5, 9, 12, -1, 2, 7, 11,  0, 4, 7, 12] },
-            { name: "G-Dur", isMajor: true, root: 67, scale: [53,55,57,59,60,62,64,66,67,69,71,72,74,76,77,79,81,83], names: ["fis","g","a","h","c'","d'","e'","fis'","g'","a'","h'","c''","d''","e''","fis''","g''","a''","h''"], rootIdx: 8, chordTones: [1, 3, 5, 8, 10, 12, 15, 17], subdomTones: [4, 7, 9, 11, 14, 16], domTones: [2, 5, 9, 13, 16], cadenceOffsets: [0, 4, 7, 12,  0, 5, 9, 12, -1, 2, 7, 11,  0, 4, 7, 12] },
-            { name: "D-Dur", isMajor: true, root: 62, scale: [54,55,57,59,61,62,64,66,67,69,71,73,74,76,78,79,81,83], names: ["fis","g","a","h","cis'","d'","e'","fis'","g'","a'","h'","cis''","d''","e''","fis''","g''","a''","h''"], rootIdx: 5, chordTones: [0, 2, 5, 7, 9, 12, 14, 16], subdomTones: [1, 4, 6, 8, 11, 13, 15], domTones: [2, 6, 9, 11, 13, 17], cadenceOffsets: [0, 4, 7, 12,  0, 5, 9, 12, -1, 2, 7, 11,  0, 4, 7, 12] },
-            { name: "F-Dur", isMajor: true, root: 65, scale: [53,55,57,58,60,62,64,65,67,69,70,72,74,76,77,79,81,82], names: ["f","g","a","b","c'","d'","e'","f'","g'","a'","b'","c''","d''","e''","f''","g''","a''","b''"], rootIdx: 7, chordTones: [0, 2, 4, 7, 9, 11, 14, 16], subdomTones: [3, 6, 8, 10, 13, 15, 17], domTones: [1, 4, 8, 11, 13, 15], cadenceOffsets: [0, 4, 7, 12,  0, 5, 9, 12, -1, 2, 7, 11,  0, 4, 7, 12] },
-            { name: "a-Moll", isMajor: false, root: 57, scale: [53,56,57,59,60,62,64,65,68,69,71,72,74,76,77,80,81,83], names: ["f","gis","a","h","c'","d'","e'","f'","gis'","a'","h'","c''","d''","e''","f''","gis''","a''","h''"], rootIdx: 9, chordTones: [2, 4, 6, 9, 11, 13, 16], subdomTones: [0, 3, 5, 7, 10, 12, 14], domTones: [1, 6, 8, 10, 15, 17], cadenceOffsets: [0, 3, 7, 12,  0, 5, 8, 12, -1, 2, 7, 11,  0, 3, 7, 12] }
+            { id: "halbe", duration: 2.0, name: "Halbe Note", offsets: [0] },
+            { id: "punk_viert_acht", duration: 2.0, name: "Punktierte Viertel + Achtel", offsets: [0, 1.5] },
+            { id: "acht_punk_viert", duration: 2.0, name: "Achtel + Punktierte Viertel", offsets: [0, 0.5] },
+            { id: "triole_2", duration: 2.0, name: "Triole (3 Viertel)", offsets: [0, 0.666, 1.333] }
         ];
 
         const RHYTHM_STEPS = [
@@ -291,6 +340,239 @@
             { name: "Übermäßig", offsets: [0, 4, 8, 12] }
         ];
 
+        // =========================================================
+        // 2. KLASSE FÜR MELODIE-GENERIERUNG (Haydn/Mozart Stil)
+        // =========================================================
+        const KEY_CATALOG = [
+            { name: "C-Dur", root: 60, scale: [0,2,4,5,7,9,11], abcKey: "C" },
+            { name: "G-Dur", root: 67, scale: [0,2,4,5,7,9,11], abcKey: "G" },
+            { name: "D-Dur", root: 62, scale: [0,2,4,5,7,9,11], abcKey: "D" },
+            { name: "F-Dur", root: 65, scale: [0,2,4,5,7,9,11], abcKey: "F" },
+            { name: "B-Dur", root: 58, scale: [0,2,4,5,7,9,11], abcKey: "Bb" }
+        ];
+
+        const HARMONY_SCHEMAS = [
+            [1, 1, 4, 5], [1, 1, 5, 1], [1, 4, 1, 5], [1, 4, 5, 1],
+            [1, 6, 4, 5], [1, 2, 5, 1], [1, 4, 2, 5], [1, 6, 2, 5]
+        ];
+
+        const CHORD_DEGREES = {
+            1: [0, 2, 4, 7],
+            2: [1, 3, 5, 8],
+            4: [3, 5, 7, 10],
+            5: [4, 6, 8, 11],
+            6: [5, 7, 9, 12]
+        };
+
+        const MELODY_RHYTHMS_NORMAL = [
+            [1, 1, 1, 1], 
+            [0.5, 0.5, 1, 2], 
+            [1.5, 0.5, 1, 1], 
+            [1, 0.5, 0.5, 1, 1], 
+            [0.25, 0.25, 0.5, 1, 2],
+            [1, 0.25, 0.25, 0.5, 1, 1]
+        ];
+        const MELODY_RHYTHMS_CADENCE = [
+            [1, 1, 2], 
+            [1.5, 0.5, 2], 
+            [0.5, 0.5, 1, 2], 
+            [1, 0.5, 0.5, 2]
+        ];
+
+        const MELODY_CONTOURS = {
+            arp: [[2, 2, -2], [-2, -2, 2], [2, -2, 2], [-2, 2, -2]],
+            scale: [[1, 1, 1], [-1, -1, -1], [1, -1, 1], [-1, 1, -1]],
+            neighbor: [[1, -1, 1], [-1, 1, -1]],
+            leap: [[3, -1, -1], [-3, 1, 1], [4, -1, -1], [-4, 1, 1]]
+        };
+
+        function stepToMidi(step, key) {
+            let idx = ((step % 7) + 7) % 7;
+            let oct = Math.floor(step / 7);
+            return key.root + key.scale[idx] + 12 * oct;
+        }
+
+        function generateClassicalDictation(level = 1) {
+            let key = KEY_CATALOG[Math.floor(Math.random() * KEY_CATALOG.length)];
+            let schema = HARMONY_SCHEMAS[Math.floor(Math.random() * HARMONY_SCHEMAS.length)];
+            
+            let bestMelody = null;
+            for (let attempt = 0; attempt < 50; attempt++) {
+                let melody = tryGenerateMelody(key, schema, level);
+                if (validateMelody(melody, key, schema)) {
+                    bestMelody = melody;
+                    break;
+                }
+            }
+            if (!bestMelody) bestMelody = tryGenerateMelody(key, schema, level);
+            
+            return { key: key, schema: schema, notes: bestMelody };
+        }
+
+        function tryGenerateMelody(key, schema, level) {
+            let notes = [];
+            let currentStep = 0;
+            let beatInBar = 0;
+
+            for (let b = 0; b < 4; b++) {
+                let degree = schema[b];
+                let chordTones = CHORD_DEGREES[degree];
+                let rhythmCell = (b === 3) ? MELODY_RHYTHMS_CADENCE[Math.floor(Math.random() * MELODY_RHYTHMS_CADENCE.length)] : MELODY_RHYTHMS_NORMAL[Math.floor(Math.random() * MELODY_RHYTHMS_NORMAL.length)];
+                let barSteps = [];
+
+                if (b === 3) {
+                    let penultimateStep = Math.random() < 0.5 ? 1 : -1;
+                    barSteps[rhythmCell.length - 1] = 0;
+                    barSteps[rhythmCell.length - 2] = penultimateStep;
+                    let firstChordStep = chordTones.reduce((prev, curr) => Math.abs(curr - currentStep) < Math.abs(prev - currentStep) ? curr : prev);
+                    for (let i = 0; i < rhythmCell.length - 2; i++) {
+                        barSteps[i] = firstChordStep;
+                    }
+                } else {
+                    let contourWeights = level === 1 
+                        ? [['arp', 40], ['scale', 40], ['neighbor', 10], ['leap', 10]]
+                        : [['arp', 30], ['scale', 30], ['neighbor', 20], ['leap', 20]];
+                    let contourType = getWeightedRandom(contourWeights);
+                    let contourPattern = MELODY_CONTOURS[contourType][Math.floor(Math.random() * MELODY_CONTOURS[contourType].length)];
+                    let startStep = chordTones.reduce((prev, curr) => Math.abs(curr - currentStep) < Math.abs(prev - currentStep) ? curr : prev);
+                    barSteps.push(startStep);
+                    for (let i = 0; i < rhythmCell.length - 1; i++) {
+                        let nextStep = barSteps[i] + contourPattern[i % contourPattern.length];
+                        barSteps.push(nextStep);
+                    }
+                }
+
+                for (let i = 0; i < rhythmCell.length; i++) {
+                    let step = barSteps[i];
+                    currentStep = step;
+                    notes.push({
+                        bar: b,
+                        startBeat: beatInBar,
+                        duration: rhythmCell[i],
+                        step: step,
+                        midi: stepToMidi(step, key)
+                    });
+                    beatInBar += rhythmCell[i];
+                }
+                beatInBar = 0;
+            }
+            return notes;
+        }
+
+        function validateMelody(notes, key, schema) {
+            if (notes.length === 0) return false;
+            let midis = notes.map(n => n.midi);
+            let minMidi = Math.min(...midis);
+            let maxMidi = Math.max(...midis);
+            if (maxMidi - minMidi > 12) return false;
+            for (let i = 1; i < notes.length; i++) {
+                let prev = notes[i-1]; let curr = notes[i];
+                let diff = Math.abs(curr.midi - prev.midi); let sign = Math.sign(curr.midi - prev.midi);
+                if (diff > 9) return false;
+                if (diff > 3) {
+                    if (i < notes.length - 1) {
+                        let next = notes[i+1]; let nextDiff = next.midi - curr.midi;
+                        if (Math.sign(nextDiff) === sign || Math.abs(nextDiff) > 2) return false;
+                    }
+                }
+                if (i >= 2) {
+                    if (curr.midi === prev.midi && prev.midi === notes[i-2].midi) return false;
+                }
+            }
+            if (notes[notes.length - 1].step !== 0) return false;
+            let penultimate = notes[notes.length - 2].step;
+            if (penultimate !== 1 && penultimate !== -1) return false;
+            return true;
+        }
+
+        function getWeightedRandom(weights) {
+            let total = weights.reduce((sum, w) => sum + w[1], 0);
+            let r = Math.random() * total;
+            for (let w of weights) {
+                if (r < w[1]) return w[0];
+                r -= w[1];
+            }
+            return weights[0][0];
+        }
+
+        // =========================================================
+        // 3. ABC NOTATION GENERATOR
+        // =========================================================
+        function midiToAbc(midi, key) {
+            const notesSharp = ['C', '^C', 'D', '^D', 'E', 'F', '^F', 'G', '^G', 'A', '^A', 'B'];
+            const notesFlat = ['C', '_D', 'D', '_E', 'E', 'F', '_G', 'G', '_A', 'A', '_B', 'B'];
+            const useFlats = key.abcKey === 'F' || key.abcKey === 'Bb';
+            const notes = useFlats ? notesFlat : notesSharp;
+            const noteStr = notes[midi % 12];
+            
+            let octave = Math.floor(midi / 12) - 1; // MIDI 60 = Oktave 4
+            let letter = noteStr.slice(-1);
+            let acc = noteStr.length > 1 ? noteStr.slice(0, -1) : '';
+            
+            if (octave <= 3) {
+                return acc + letter.toUpperCase() + ",".repeat(4 - octave);
+            } else if (octave === 4) {
+                return acc + letter.toUpperCase();
+            } else if (octave === 5) {
+                return acc + letter.toLowerCase();
+            } else if (octave === 6) {
+                return acc + letter.toLowerCase() + "'";
+            }
+            return noteStr;
+        }
+
+        function toAbcNotation(melodyData) {
+            const key = melodyData.key;
+            let abc = `X:1\nT: Melodiediktat\nM:4/4\nL:1/16\nK: ${key.abcKey}\n`;
+            let currentBar = -1;
+            
+            melodyData.notes.forEach(note => {
+                if (note.bar !== currentBar) {
+                    if (currentBar !== -1) abc += " | ";
+                    currentBar = note.bar;
+                }
+                let dur = Math.round(note.duration * 4);
+                abc += midiToAbc(note.midi, key) + (dur === 1 ? "" : dur);
+            });
+            abc += " |]";
+            return abc;
+        }
+
+        // KOMPLETT NEU GESCHRIEBEN: Generiert saubere, gebalkte Noten ohne Akkord-Klammern
+        function rhythmToAbc(data) {
+            let abc = "X:1\nT: Rhythmusdiktat\nM:4/4\nL:1/16\nK:C\nV:1 clef=perc\n";
+            data.forEach((bar, idx) => {
+                if (idx > 0) abc += " | ";
+                bar.forEach(cell => {
+                    if (cell.id.startsWith("triole")) {
+                        let noteLen = cell.duration === 1.0 ? 2 : 4; 
+                        // (3 leitet Triole ein, danach Noten direkt aneinander (B2B2B2)
+                        abc += "(3" + Array(3).fill("B" + noteLen).join("");
+                    } else {
+                        let offsets = cell.offsets;
+                        let cellStr = "";
+                        for (let i = 0; i < offsets.length; i++) {
+                            let dur;
+                            if (i === offsets.length - 1) {
+                                dur = cell.duration - offsets[i];
+                            } else {
+                                dur = offsets[i+1] - offsets[i];
+                            }
+                            let units = Math.round(dur * 4);
+                            cellStr += "B" + (units > 1 ? units : "");
+                        }
+                        abc += cellStr;
+                    }
+                    abc += " "; // Wichtig: Leerzeichen nach jeder Zelle, damit Takteinteilung sauber bleibt
+                });
+            });
+            abc += "|]";
+            return abc;
+        }
+
+        // =========================================================
+        // 4. AUDIO ENGINE & STATE
+        // =========================================================
         let audioCtx = null;
         let quizQuestions = []; 
         let currentIdx = 0;     
@@ -298,14 +580,10 @@
         let hasAnswered = false;
         let currentMode = 'mix';
         let currentDiktatStep = 0;
+        let metronomeTimer = null;
+        let diktatPlayTimers = [];
 
-        // HIGH-QUALITY SAMPLER STATE
-        const pianoSamples = {
-            48: "C3", 52: "E3", 55: "G3",
-            60: "C4", 64: "E4", 67: "G4",
-            72: "C5", 76: "E5", 79: "G5",
-            84: "C6"
-        };
+        const pianoSamples = { 48: "C3", 52: "E3", 55: "G3", 60: "C4", 64: "E4", 67: "G4", 72: "C5", 76: "E5", 79: "G5", 84: "C6" };
         const audioBuffers = {};
         let samplesLoaded = false;
         const sampleBaseUrl = "https://tonejs.github.io/audio/salamander/";
@@ -318,20 +596,21 @@
         function stopAllAudio() {
             activeAudioNodes.forEach(node => { try { node.stop(); } catch(e) {} });
             activeAudioNodes = [];
+            diktatPlayTimers.forEach(timer => clearTimeout(timer));
+            diktatPlayTimers = [];
+            if (metronomeTimer) {
+                clearInterval(metronomeTimer);
+                metronomeTimer = null;
+                document.querySelectorAll('.metronome-dot').forEach(d => d.classList.remove('active'));
+            }
         }
 
-        // Lade alle vordefinierten Steinway Grand Piano Samples parallel herunter
         async function loadPianoSamples() {
             if (samplesLoaded) return true;
             initAudio();
-            
-            const loadingScreen = document.getElementById('loading-screen');
-            const loadingBar = document.getElementById('loading-bar');
-            loadingScreen.classList.remove('hidden');
-
+            document.getElementById('loading-screen').classList.remove('hidden');
             const midiNotes = Object.keys(pianoSamples).map(Number);
             let loadedCount = 0;
-
             const promises = midiNotes.map(async (midi) => {
                 const noteName = pianoSamples[midi];
                 const url = `${sampleBaseUrl}${noteName}.mp3`;
@@ -341,121 +620,66 @@
                     const arrayBuffer = await response.arrayBuffer();
                     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                     audioBuffers[midi] = audioBuffer;
-                } catch (e) {
-                    console.error("Sampler konnte Note nicht laden: " + noteName + ". Synthesizer dient als Fallback.", e);
-                } finally {
+                } catch (e) { console.error("Fallback aktiv.", e); } 
+                finally {
                     loadedCount++;
-                    const percent = Math.round((loadedCount / midiNotes.length) * 100);
-                    loadingBar.style.width = `${percent}%`;
+                    document.getElementById('loading-bar').style.width = `${Math.round((loadedCount / midiNotes.length) * 100)}%`;
                 }
             });
-
             await Promise.all(promises);
             samplesLoaded = true;
-            loadingScreen.classList.add('hidden');
+            document.getElementById('loading-screen').classList.add('hidden');
             return true;
         }
 
         function mToFreq(note) { return 440 * Math.pow(2, (note - 69) / 12); }
 
-        // HIGH-FIDELITY SAMPLER WIEDERGABE (Mit automatischem Fallback auf Additive Synthese)
         function playPianoTone(midiNote, startTime, duration, volume = 0.35) {
             initAudio();
-
             const keys = Object.keys(audioBuffers).map(Number);
-            
-            // FALLBACK auf den Synthesizer, falls keine Internetverbindung oder Ladefehler
-            if (keys.length === 0) {
-                playSynthPianoTone(midiNote, startTime, duration, volume);
-                return;
-            }
-
-            // Finde das am nächsten gelegene vorrätige Sample
-            let closestMidi = keys[0];
-            let minDiff = Math.abs(midiNote - closestMidi);
-            for (let i = 1; i < keys.length; i++) {
-                let diff = Math.abs(midiNote - keys[i]);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    closestMidi = keys[i];
-                }
-            }
-
+            if (keys.length === 0) { playSynthPianoTone(midiNote, startTime, duration, volume); return; }
+            let closestMidi = keys[0]; let minDiff = Math.abs(midiNote - closestMidi);
+            for (let i = 1; i < keys.length; i++) { let diff = Math.abs(midiNote - keys[i]); if (diff < minDiff) { minDiff = diff; closestMidi = keys[i]; } }
             const buffer = audioBuffers[closestMidi];
-            const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-
-            // Berechne Pitch-Shifting-Faktor (Halbtonschritt-Abstand)
-            const playbackRate = Math.pow(2, (midiNote - closestMidi) / 12);
-            source.playbackRate.setValueAtTime(playbackRate, startTime);
-
+            const source = audioCtx.createBufferSource(); source.buffer = buffer;
+            source.playbackRate.setValueAtTime(Math.pow(2, (midiNote - closestMidi) / 12), startTime);
             const gainNode = audioCtx.createGain();
             gainNode.gain.setValueAtTime(0, startTime);
-            gainNode.gain.linearRampToValueAtTime(volume * 1.6, startTime + 0.005); // Sampler-Attack
+            gainNode.gain.linearRampToValueAtTime(volume * 1.6, startTime + 0.005);
             gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
             source.connect(gainNode).connect(audioCtx.destination);
-            source.start(startTime);
-            source.stop(startTime + duration);
+            source.start(startTime); source.stop(startTime + duration);
             activeAudioNodes.push(source);
         }
 
-        // Der original mathematisch optimierte Synthesizer-Klang dient als treuer Fallback-Schutz
         function playSynthPianoTone(midiNote, startTime, duration, volume = 0.35) {
-            const freq = mToFreq(midiNote);
-            const now = startTime;
-
+            const freq = mToFreq(midiNote); const now = startTime;
             const masterGain = audioCtx.createGain();
             masterGain.gain.setValueAtTime(0, now);
             masterGain.gain.linearRampToValueAtTime(volume, now + 0.006);
             masterGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
             masterGain.connect(audioCtx.destination);
-
-            const hammerOsc = audioCtx.createOscillator();
-            const hammerGain = audioCtx.createGain();
-            hammerOsc.type = 'sine';
-            hammerOsc.frequency.setValueAtTime(freq * 5.7, now);
+            const hammerOsc = audioCtx.createOscillator(); const hammerGain = audioCtx.createGain();
+            hammerOsc.type = 'sine'; hammerOsc.frequency.setValueAtTime(freq * 5.7, now);
             hammerGain.gain.setValueAtTime(volume * 0.45, now);
             hammerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
-            
             hammerOsc.connect(hammerGain).connect(masterGain);
-            hammerOsc.start(now);
-            hammerOsc.stop(now + 0.03);
+            hammerOsc.start(now); hammerOsc.stop(now + 0.03);
             activeAudioNodes.push(hammerOsc);
-
-            const detuneOffsets = [-3.5, 0, 3.5];
-            detuneOffsets.forEach((detune) => {
-                const harmonics = [
-                    { multiplier: 1.0, weight: 0.55, decayRate: 1.0, type: 'sine' },
-                    { multiplier: 2.0, weight: 0.28, decayRate: 0.65, type: 'sine' },
-                    { multiplier: 3.0, weight: 0.16, decayRate: 0.45, type: 'sine' },
-                    { multiplier: 4.0, weight: 0.09, decayRate: 0.30, type: 'sine' },
-                    { multiplier: 5.0, weight: 0.04, decayRate: 0.18, type: 'triangle' }
-                ];
-
-                harmonics.forEach(h => {
-                    const osc = audioCtx.createOscillator();
-                    const oscGain = audioCtx.createGain();
-
-                    osc.type = h.type;
-                    osc.frequency.setValueAtTime(freq * h.multiplier, now);
-                    osc.detune.setValueAtTime(detune, now);
-
-                    const harmonicDecay = duration * h.decayRate;
-                    oscGain.gain.setValueAtTime(h.weight, now);
-                    oscGain.gain.exponentialRampToValueAtTime(0.001, now + harmonicDecay);
-
-                    osc.connect(oscGain).connect(masterGain);
-                    osc.start(now);
-                    osc.stop(now + harmonicDecay);
+            [-3.5, 0, 3.5].forEach(detune => {
+                [{m:1.0,w:0.55,d:1.0,t:'sine'},{m:2.0,w:0.28,d:0.65,t:'sine'},{m:3.0,w:0.16,d:0.45,t:'sine'},{m:4.0,w:0.09,d:0.30,t:'sine'},{m:5.0,w:0.04,d:0.18,t:'triangle'}].forEach(h => {
+                    const osc = audioCtx.createOscillator(); const oscGain = audioCtx.createGain();
+                    osc.type = h.t; osc.frequency.setValueAtTime(freq * h.m, now); osc.detune.setValueAtTime(detune, now);
+                    const decay = duration * h.d;
+                    oscGain.gain.setValueAtTime(h.w, now); oscGain.gain.exponentialRampToValueAtTime(0.001, now + decay);
+                    osc.connect(oscGain).connect(masterGain); osc.start(now); osc.stop(now + decay);
                     activeAudioNodes.push(osc);
                 });
             });
         }
 
         function playMetronomeClick(startTime, isDownbeat) {
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
             osc.type = 'sine'; osc.frequency.setValueAtTime(isDownbeat ? 850 : 550, startTime);
             gainNode.gain.setValueAtTime(0.15, startTime);
             gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.04);
@@ -464,153 +688,93 @@
             activeAudioNodes.push(osc);
         }
 
+        function triggerVisualMetronome(startAudioTime) {
+            if (metronomeTimer) clearInterval(metronomeTimer);
+            const dots = document.querySelectorAll('.metronome-dot');
+            let beat = 0;
+            const tick = () => {
+                const now = audioCtx.currentTime;
+                if (now >= startAudioTime - 0.05) {
+                    dots.forEach(d => d.classList.remove('active'));
+                    if (dots[beat]) { dots[beat].classList.add('active'); beat++; }
+                    if (beat >= 4) clearInterval(metronomeTimer);
+                }
+            };
+            metronomeTimer = setInterval(tick, 50);
+        }
+
         function playSnareTone(startTime) {
             const bufferSize = audioCtx.sampleRate * 0.1;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-
             const noiseNode = audioCtx.createBufferSource(); noiseNode.buffer = buffer;
             const filter = audioCtx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.setValueAtTime(1600, startTime);
             const noiseGain = audioCtx.createGain();
             noiseGain.gain.setValueAtTime(0.25, startTime);
             noiseGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
-
             noiseNode.connect(filter).connect(noiseGain).connect(audioCtx.destination);
             noiseNode.start(startTime); noiseNode.stop(startTime + 0.1);
             activeAudioNodes.push(noiseNode);
         }
 
         function playProceduralCadence(keyObj, startAudioTime) {
+            const fixedSchema = [1, 4, 5, 1];
             let t = startAudioTime;
-            const offsets = keyObj.cadenceOffsets;
-            const root = keyObj.root;
-
-            playPianoTone(root + offsets[0], t, 0.7, 0.25);
-            playPianoTone(root + offsets[1], t, 0.7, 0.25);
-            playPianoTone(root + offsets[2], t, 0.7, 0.25);
-            playPianoTone(root + offsets[3], t, 0.7, 0.25);
-            t += 0.8;
-
-            playPianoTone(root + offsets[4], t, 0.7, 0.25);
-            playPianoTone(root + offsets[5], t, 0.7, 0.25);
-            playPianoTone(root + offsets[6], t, 0.7, 0.25);
-            playPianoTone(root + offsets[7], t, 0.7, 0.25);
-            t += 0.8;
-
-            playPianoTone(root + offsets[8], t, 0.7, 0.25);
-            playPianoTone(root + offsets[9], t, 0.7, 0.25);
-            playPianoTone(root + offsets[10], t, 0.7, 0.25);
-            playPianoTone(root + offsets[11], t, 0.7, 0.25);
-            t += 0.8;
-
-            playPianoTone(root + offsets[12], t, 0.9, 0.25);
-            playPianoTone(root + offsets[13], t, 0.9, 0.25);
-            playPianoTone(root + offsets[14], t, 0.9, 0.25);
-            playPianoTone(root + offsets[15], t, 0.9, 0.25);
-            t += 1.2;
-
+            for (let b = 0; b < 4; b++) {
+                let degree = fixedSchema[b];
+                let chordMidiArr = CHORD_DEGREES[degree].map(s => stepToMidi(s, keyObj));
+                let dur = b < 3 ? 0.7 : 0.9;
+                chordMidiArr.forEach(m => playPianoTone(m, t, dur, 0.22));
+                t += b < 3 ? 0.8 : 1.2;
+            }
             return t;
         }
 
+        // =========================================================
+        // 5. RHYTHMUS GENERATOR
+        // =========================================================
         function generateRhythmData() {
             let dictation = [];
             for (let bar = 0; bar < 4; bar++) {
-                let barFigures = [], beat = 0;
+                let barFigures = [];
+                let beat = 0;
+                let isLastBar = (bar === 3);
+                
                 while (beat < 4) {
-                    if (bar === 3 && beat >= 2) {
-                        barFigures.push({ ...RHYTHM_2BEAT[0], startBeat: beat }); beat += 2;
-                    } else if (Math.random() < 0.4) {
-                        let fig = RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)];
-                        barFigures.push({ ...fig, startBeat: beat }); beat += 1;
+                    if (isLastBar && beat === 2) {
+                        barFigures.push({ ...RHYTHM_2BEAT[0] });
+                        beat += 2;
+                    } else if (beat <= 2 && Math.random() < 0.3 && !(isLastBar && beat === 2)) {
+                        let cell = { ...RHYTHM_2BEAT[Math.floor(Math.random() * RHYTHM_2BEAT.length)] };
+                        barFigures.push(cell); beat += 2;
                     } else {
-                        barFigures.push({ ...RHYTHM_1BEAT[0], startBeat: beat }); beat += 1;
+                        let cell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
+                        barFigures.push(cell); beat += 1;
                     }
                 }
+                if (barFigures.every(f => f.id === "viertel")) {
+                    let replaceIdx = barFigures.findIndex(f => f.duration === 1.0);
+                    if (replaceIdx !== -1) {
+                        let newCell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
+                        while(newCell.id === "viertel") newCell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
+                        barFigures[replaceIdx] = newCell;
+                    }
+                }
+                let currentBeat = 0;
+                barFigures.forEach(fig => { fig.startBeat = currentBeat; currentBeat += fig.duration; });
                 dictation.push(barFigures);
             }
             return dictation;
         }
 
-        function generateMelodyData() {
-            const keyObj = MELODY_KEYS[Math.floor(Math.random() * MELODY_KEYS.length)];
-            let notesSequence = [];
-            let currentIdx = keyObj.rootIdx; 
-
-            const structuralRhythms = [
-                [1.5, 0.5, 1.0, 1.0],               
-                [0.5, 0.5, 0.5, 0.5, 1.0, 1.0],     
-                [1.0, 1.0, 0.5, 0.5, 1.0],          
-                [1.0, 1.0, 2.0]                     
-            ];
-
-            for (let bar = 0; bar < 4; bar++) {
-                const pattern = structuralRhythms[bar];
-                let beat = 0;
-                let patternIdx = 0;
-
-                while (beat < 4 && patternIdx < pattern.length) {
-                    let duration = pattern[patternIdx];
-                    let nextIdx = currentIdx;
-
-                    if (bar === 0 && beat === 0) {
-                        nextIdx = keyObj.rootIdx; 
-                    } else if (bar === 3 && beat >= 2) {
-                        nextIdx = keyObj.rootIdx; 
-                    } else if (bar === 3 && beat === 1) {
-                        nextIdx = Math.random() < 0.5 ? keyObj.rootIdx - 1 : keyObj.rootIdx + 1;
-                    } else {
-                        let allowedPool = keyObj.chordTones; 
-                        if (bar === 1) allowedPool = keyObj.subdomTones; 
-                        if (bar === 2) allowedPool = keyObj.domTones;    
-
-                        if (duration === 0.5 && patternIdx > 0 && pattern[patternIdx - 1] === 0.5) {
-                            let direction = (currentIdx > keyObj.rootIdx + 4) ? -1 : (currentIdx < keyObj.rootIdx - 2 ? 1 : (Math.random() < 0.5 ? 1 : -1));
-                            nextIdx = currentIdx + direction;
-                        } else {
-                            let bestDiff = 999;
-                            let target = currentIdx;
-                            allowedPool.forEach(idx => {
-                                let diff = Math.abs(idx - currentIdx);
-                                if (diff > 0 && diff <= 3 && diff < bestDiff) {
-                                    bestDiff = diff; target = idx;
-                                }
-                            });
-                            nextIdx = target;
-                        }
-                    }
-
-                    if (nextIdx < 0) nextIdx = 0;
-                    if (nextIdx >= keyObj.scale.length) nextIdx = keyObj.scale.length - 1;
-
-                    currentIdx = nextIdx;
-                    notesSequence.push({
-                        bar: bar,
-                        startBeat: beat,
-                        duration: duration,
-                        midi: keyObj.scale[currentIdx],
-                        name: keyObj.names[currentIdx],
-                        scaleIdx: currentIdx
-                    });
-
-                    beat += duration;
-                    patternIdx++;
-                }
-            }
-
-            return { key: keyObj, notes: notesSequence };
-        }
-
-        // Lade-Mechanismus vor dem Ausführen von Modifikationen mit Piano
+        // =========================================================
+        // 6. QUIZ LOGIC & UI MANAGEMENT
+        // =========================================================
         async function selectAndStartMode(mode) {
             currentMode = mode;
             initAudio();
-
-            // Nur laden, falls Klavier verwendet wird (Rhythmus braucht nur Snare/Metronom)
-            if (mode !== 'rhythm') {
-                await loadPianoSamples();
-            }
-
+            if (mode !== 'rhythm') { await loadPianoSamples(); }
             generateQuizStructure(mode);
             showScreen('quiz-screen');
             renderQuestion();
@@ -619,7 +783,7 @@
         function generateQuizStructure(mode) {
             quizQuestions = [];
             if (mode === 'rhythm' || mode === 'mix') quizQuestions.push({ type: 'rhythm', rhythmData: generateRhythmData() });
-            if (mode === 'melody' || mode === 'mix') quizQuestions.push({ type: 'melody', melodyData: generateMelodyData() });
+            if (mode === 'melody' || mode === 'mix') quizQuestions.push({ type: 'melody', melodyData: generateClassicalDictation(1) });
             
             const minMidi = 55, maxMidi = 68;
             if (mode === 'intervals' || mode === 'mix') {
@@ -643,12 +807,10 @@
         }
 
         function showScreen(screenId) {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.add('hidden');
-            document.getElementById('global-progress').classList.add('hidden');
+            ['start-screen', 'quiz-screen', 'result-screen', 'global-progress'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
             if (screenId === 'quiz-screen') document.getElementById('global-progress').classList.remove('hidden');
+            window.scrollTo(0, 0);
         }
 
         function renderQuestion() {
@@ -656,6 +818,7 @@
             const task = quizQuestions[currentIdx];
             document.getElementById('progress-current').innerText = currentIdx + 1;
             document.getElementById('feedback-container').classList.add('hidden');
+            document.getElementById('btn-replay-feedback').classList.add('hidden');
 
             const typeBadge = document.getElementById('quiz-type-badge');
             const optionsContainer = document.getElementById('options-container');
@@ -671,19 +834,19 @@
 
                 if (task.type === 'rhythm') {
                     typeBadge.innerText = "Rhythmus-Diktat";
-                    typeBadge.className = "bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full";
+                    typeBadge.className = "bg-emerald-100 text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full";
                     melodyOrientBox.classList.add('hidden');
                 } else {
-                    typeBadge.innerText = "Melodiediktat";
-                    typeBadge.className = "bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full";
+                    typeBadge.innerText = "Melodiediktat (Klassik)";
+                    typeBadge.className = "bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full";
                     melodyOrientBox.classList.remove('hidden');
-                    
                     let firstNote = task.melodyData.notes[0];
-                    let registerName = firstNote.name.includes("''") ? "Zweigestrichene Oktave" : (firstNote.name.includes("'") ? "Engestrichene Oktave" : "Kleine Oktave");
+                    let startMidi = firstNote.midi;
+                    let startName = midiToNoteName(startMidi);
                     
                     document.getElementById('melody-key-display').innerText = task.melodyData.key.name;
-                    document.getElementById('melody-first-note-display').innerText = firstNote.name;
-                    document.getElementById('melody-register-display').innerText = registerName;
+                    document.getElementById('melody-first-note-display').innerText = startName;
+                    document.getElementById('melody-register-display').innerText = "I-IV-V-I";
                     
                     document.getElementById('btn-melody-orient').onclick = () => {
                         stopAllAudio(); initAudio();
@@ -697,16 +860,21 @@
                 melodyOrientBox.classList.add('hidden');
                 optionsContainer.classList.remove('hidden');
                 standardAudioControls.classList.remove('hidden');
-
                 typeBadge.innerText = task.type === 'interval' ? "Intervall" : "Vierklang";
-                typeBadge.className = task.type === 'interval' ? "bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full" : "bg-purple-100 text-purple-800 text-xs font-bold px-3 py-1 rounded-full";
+                typeBadge.className = task.type === 'interval' ? "bg-indigo-100 text-indigo-800 text-[11px] font-bold px-3 py-1 rounded-full" : "bg-purple-100 text-purple-800 text-[11px] font-bold px-3 py-1 rounded-full";
 
                 optionsContainer.innerHTML = '';
                 const pool = task.type === 'interval' ? INTERVALS : CHORDS;
-                pool.forEach(item => {
+                pool.forEach((item, index) => {
                     const button = document.createElement('button');
                     button.innerText = item.name;
-                    button.className = "option-btn bg-slate-100 hover:bg-slate-200 text-slate-800 p-4 rounded-xl text-center border border-slate-200 transition text-sm cursor-pointer";
+                    button.className = "option-btn bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-800 p-4 rounded-xl text-center border border-slate-200 transition text-sm cursor-pointer relative font-medium";
+                    if (pool.length <= 9) {
+                        const hint = document.createElement('span');
+                        hint.className = "absolute top-1.5 right-2 text-[10px] text-slate-300 font-mono";
+                        hint.innerText = index + 1;
+                        button.appendChild(hint);
+                    }
                     button.onclick = () => handleGehoerAnswer(item.name, button);
                     optionsContainer.appendChild(button);
                 });
@@ -714,78 +882,84 @@
             }
         }
 
-        // UNLOCK HELPER FÜR MOBILE (Gezielter One-Shot-Klick für unbeschränkten Audio-Sicherheits-Bypass)
+        function midiToNoteName(midi) {
+            const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            let name = names[midi % 12];
+            let octave = Math.floor(midi / 12) - 1;
+            if (octave === 4) return name.toLowerCase();
+            if (octave === 5) return name.toLowerCase() + "'";
+            return name + octave;
+        }
+
         function unlockMobileAudio() {
             initAudio();
             try {
-                // Ein extrem kurzer, leerer Puffer wird sofort abgespielt
                 const buffer = audioCtx.createBuffer(1, 1, 22050);
                 const source = audioCtx.createBufferSource();
-                source.buffer = buffer;
-                source.connect(audioCtx.destination);
-                source.start(0);
-            } catch (e) {
-                console.warn("Mobile Web Audio Unlock-Versuch fehlgeschlagen:", e);
-            }
-            // Event Listener entfernen, sobald der erste Klick erfolgt ist
+                source.buffer = buffer; source.connect(audioCtx.destination); source.start(0);
+            } catch (e) {}
             document.removeEventListener('click', unlockMobileAudio);
             document.removeEventListener('touchstart', unlockMobileAudio);
         }
         document.addEventListener('click', unlockMobileAudio);
         document.addEventListener('touchstart', unlockMobileAudio);
 
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('quiz-screen').classList.contains('hidden')) return;
+            if (hasAnswered) return;
+            const task = quizQuestions[currentIdx];
+            if (task.type !== 'interval' && task.type !== 'chord') return;
+            const pool = task.type === 'interval' ? INTERVALS : CHORDS;
+            const key = parseInt(e.key);
+            if (!isNaN(key) && key >= 1 && key <= pool.length) {
+                const buttons = document.getElementsByClassName('option-btn');
+                if (buttons[key - 1]) buttons[key - 1].click();
+            }
+        });
+
         function playCurrentGehoerTask() {
             stopAllAudio(); initAudio();
             const task = quizQuestions[currentIdx];
             let now = audioCtx.currentTime;
-            
-            task.offsets.forEach((offset, i) => { 
-                playPianoTone(task.rootNote + offset, now + (i * 0.4), 0.5); 
-            });
-            
+            task.offsets.forEach((offset, i) => { playPianoTone(task.rootNote + offset, now + (i * 0.4), 0.5); });
             let simStart = now + (task.offsets.length * 0.4) + 0.3;
-            task.offsets.forEach(offset => { 
-                playPianoTone(task.rootNote + offset, simStart, 1.5); 
-            });
+            task.offsets.forEach(offset => { playPianoTone(task.rootNote + offset, simStart, 1.5); });
         }
 
         function setupDiktatStepUI() {
             const step = RHYTHM_STEPS[currentDiktatStep];
             document.getElementById('diktat-step-title').innerText = step.label;
-
             const dotsContainer = document.getElementById('diktat-steps-progress');
             dotsContainer.innerHTML = '';
             for (let i = 0; i < 11; i++) {
                 const dot = document.createElement('div');
-                dot.className = `w-3 h-3 rounded-full shrink-0 ${i === currentDiktatStep ? 'bg-blue-600 ring-4 ring-blue-100' : (i < currentDiktatStep ? 'bg-emerald-500' : 'bg-slate-300')}`;
+                dot.className = `w-2.5 h-2.5 rounded-full shrink-0 transition-colors ${i === currentDiktatStep ? 'bg-indigo-600 scale-125' : (i < currentDiktatStep ? 'bg-emerald-500' : 'bg-slate-300')}`;
                 dotsContainer.appendChild(dot);
             }
 
             const playBtn = document.getElementById('btn-diktat-play');
-            
             playBtn.disabled = false;
-            playBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl shadow transition flex items-center gap-2 cursor-pointer";
+            playBtn.className = "bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold px-6 py-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 cursor-pointer text-sm";
             playBtn.innerText = "Diesen Lauf abspielen";
 
             playBtn.onclick = () => {
                 playBtn.disabled = true;
-                playBtn.className = "bg-slate-300 text-slate-500 font-bold px-6 py-3 rounded-xl shadow cursor-not-allowed flex items-center gap-2";
-                playBtn.innerText = "Lauf spielt... Bitte genau zuhören";
+                playBtn.className = "bg-slate-300 text-slate-500 font-bold px-6 py-4 rounded-xl shadow-sm cursor-not-allowed flex items-center justify-center gap-2 text-sm";
+                playBtn.innerText = "Lauf spielt... Bitte zuhören";
 
                 stopAllAudio(); initAudio();
                 let now = audioCtx.currentTime + 0.05;
                 const task = quizQuestions[currentIdx];
-
                 let cadenceDuration = 0;
                 if (task.type === 'melody' && currentDiktatStep === 0) {
                     now = playProceduralCadence(task.melodyData.key, now) + 0.2;
                     cadenceDuration = 3.6; 
                 }
-
                 for (let c = 0; c < 4; c++) { playMetronomeClick(now + c, c === 0); }
+                triggerVisualMetronome(now);
                 let startPlayback = now + 4.0;
-
                 const activeBars = step.bars;
+
                 if (task.type === 'rhythm') {
                     activeBars.forEach((barIdx, pos) => {
                         let bStart = startPlayback + (pos * 4.0);
@@ -797,26 +971,23 @@
                     activeBars.forEach((barIdx, pos) => {
                         let bStart = startPlayback + (pos * 4.0);
                         let barNotes = task.melodyData.notes.filter(n => n.bar === barIdx);
-                        barNotes.forEach(note => {
-                            playPianoTone(note.midi, bStart + note.startBeat, note.duration - 0.03, 0.35);
-                        });
+                        barNotes.forEach(note => { playPianoTone(note.midi, bStart + note.startBeat, note.duration - 0.03, 0.35); });
                     });
                 }
 
                 const barDuration = activeBars.length * 4.0;
                 const totalPlaybackDuration = cadenceDuration + 4.0 + barDuration;
-
-                setTimeout(() => {
-                    if (currentDiktatStep < 10) {
-                        currentDiktatStep++;
-                        setupDiktatStepUI();
-                    } else {
+                const timer = setTimeout(() => {
+                    stopAllAudio(); 
+                    if (currentDiktatStep < 10) { currentDiktatStep++; setupDiktatStepUI(); } 
+                    else {
                         playBtn.disabled = false;
-                        playBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow transition flex items-center gap-2 cursor-pointer";
+                        playBtn.className = "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-6 py-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 cursor-pointer text-sm";
                         playBtn.innerText = "Diktat abschließen & Ergebnisse anzeigen";
                         playBtn.onclick = () => { advanceQuiz(); };
                     }
                 }, (totalPlaybackDuration + 0.5) * 1000);
+                diktatPlayTimers.push(timer);
             };
         }
 
@@ -828,43 +999,52 @@
             const buttons = document.getElementsByClassName('option-btn');
             for (let btn of buttons) {
                 btn.disabled = true;
-                if (btn.innerText === task.name) btn.className = "option-btn bg-green-500 text-white font-bold p-4 rounded-xl text-sm";
-                else if (btn.innerText === selectedName) btn.className = "option-btn bg-red-500 text-white font-bold p-4 rounded-xl text-sm";
-                else btn.className = "option-btn bg-slate-50 text-slate-400 p-4 rounded-xl text-sm border border-slate-100";
+                if (btn.innerText === task.name) btn.className = "option-btn bg-green-500 text-white font-bold p-4 rounded-xl text-sm relative";
+                else if (btn.innerText === selectedName) btn.className = "option-btn bg-red-500 text-white font-bold p-4 rounded-xl text-sm relative";
+                else btn.className = "option-btn bg-slate-50 text-slate-400 p-4 rounded-xl text-sm border border-slate-100 relative";
             }
 
             const banner = document.getElementById('feedback-container');
             banner.classList.remove('hidden');
             if (task.isCorrect) {
-                banner.className = "rounded-xl p-4 my-6 flex items-center justify-between border border-green-200 bg-green-50 fade-in";
-                document.getElementById('feedback-icon').className = "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-green-500";
+                banner.className = "rounded-xl p-4 my-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border border-green-200 bg-green-50 fade-in gap-4";
+                document.getElementById('feedback-icon').className = "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-green-500 shrink-0";
                 document.getElementById('feedback-icon').innerHTML = "✓";
                 document.getElementById('feedback-text').innerText = "Richtig!";
                 document.getElementById('feedback-subtext').innerText = `Erkannt: ${task.name}`;
             } else {
-                banner.className = "rounded-xl p-4 my-6 flex items-center justify-between border border-red-200 bg-red-50 fade-in";
-                document.getElementById('feedback-icon').className = "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-red-500";
+                banner.className = "rounded-xl p-4 my-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border border-red-200 bg-red-50 fade-in gap-4";
+                document.getElementById('feedback-icon').className = "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-red-500 shrink-0";
                 document.getElementById('feedback-icon').innerHTML = "✕";
                 document.getElementById('feedback-text').innerText = "Falsch.";
                 document.getElementById('feedback-subtext').innerText = `Gesucht war: ${task.name}`;
+                document.getElementById('btn-replay-feedback').classList.remove('hidden');
+                document.getElementById('btn-replay-feedback').onclick = () => { playCurrentGehoerTask(); };
             }
         }
 
-        function advanceQuiz() {
-            currentIdx++;
-            if (currentIdx < quizQuestions.length) renderQuestion();
-            else showResults();
-        }
+        function advanceQuiz() { currentIdx++; if (currentIdx < quizQuestions.length) renderQuestion(); else showResults(); }
+        function openSkipModal() { stopAllAudio(); document.getElementById('skip-modal').classList.remove('hidden'); }
+        function closeSkipModal() { document.getElementById('skip-modal').classList.add('hidden'); }
+        function confirmSkip() { closeSkipModal(); advanceQuiz(); }
 
         function showResults() {
             stopAllAudio(); showScreen('result-screen');
             const rTask = quizQuestions.find(q => q.type === 'rhythm');
             const rContainer = document.getElementById('rhythm-result-container');
-            if (rTask) { rContainer.classList.remove('hidden'); renderVisualRhythmSheet(rTask.rhythmData); } else rContainer.classList.add('hidden');
+            if (rTask) { 
+                rContainer.classList.remove('hidden'); 
+                renderRhythmAbc(rTask.rhythmData); 
+                document.getElementById('btn-play-rhythm-solution').onclick = () => playSolutionRhythm(rTask.rhythmData); 
+            } else rContainer.classList.add('hidden');
 
             const mTask = quizQuestions.find(q => q.type === 'melody');
             const mContainer = document.getElementById('melody-result-container');
-            if (mTask) { mContainer.classList.remove('hidden'); renderVisualMelodyStaff(mTask.melodyData); } else mContainer.classList.add('hidden');
+            if (mTask) { 
+                mContainer.classList.remove('hidden'); 
+                renderAbcNotation(mTask.melodyData); 
+                document.getElementById('btn-play-melody-solution').onclick = () => playSolutionMelody(mTask.melodyData); 
+            } else mContainer.classList.add('hidden');
 
             const gTasks = quizQuestions.filter(q => q.type === 'interval' || q.type === 'chord');
             if (gTasks.length > 0) {
@@ -872,204 +1052,56 @@
                 let correct = gTasks.filter(q => q.isCorrect).length;
                 document.getElementById('result-score').innerText = `${correct} / ${gTasks.length}`;
                 const tbody = document.getElementById('result-table-body'); tbody.innerHTML = '';
-                gTasks.forEach((t, i) => {
-                    tbody.innerHTML += `<tr class="bg-white"><td class="p-3 font-medium text-slate-400">${i+1}</td><td class="p-3">${t.type}</td><td class="p-3 font-bold">${t.name}</td><td class="p-3">${t.userChoice || 'Keine'}</td><td class="p-3 text-center">${t.isCorrect?'✅':'❌'}</td></tr>`;
-                });
+                gTasks.forEach((t, i) => { tbody.innerHTML += `<tr class="bg-white"><td class="p-3 font-medium text-slate-400">${i+1}</td><td class="p-3">${t.type}</td><td class="p-3 font-bold">${t.name}</td><td class="p-3">${t.userChoice || 'Keine'}</td><td class="p-3 text-center">${t.isCorrect?'✅':'❌'}</td></tr>`; });
             } else { document.getElementById('detail-table-block').classList.add('hidden'); }
         }
 
-        function renderVisualRhythmSheet(data) {
-            const container = document.getElementById('rhythm-sheet-music'); container.innerHTML = '';
-            data.forEach((bar, idx) => {
-                const box = document.createElement('div'); box.className = "bg-slate-800 border border-slate-700 rounded-xl p-4";
-                box.innerHTML = `<div class="text-[10px] text-slate-400 uppercase tracking-wider mb-2">Takt ${idx+1}</div>`;
-                const flex = document.createElement('div'); flex.className = "flex items-end justify-center bg-slate-950 p-2 rounded-lg";
-                bar.forEach(f => { flex.innerHTML += `<div class="${f.duration===2.0?'w-24':'w-12'}">${f.html}</div>`; });
-                box.appendChild(flex); container.appendChild(box);
+        function playSolutionRhythm(rhythmData) {
+            stopAllAudio(); initAudio();
+            let now = audioCtx.currentTime + 0.1;
+            for (let c = 0; c < 4; c++) { playMetronomeClick(now + c, c === 0); }
+            triggerVisualMetronome(now);
+            let startPlayback = now + 4.0;
+            rhythmData.forEach((bar, barIdx) => {
+                let bStart = startPlayback + (barIdx * 4.0);
+                bar.forEach(fig => { fig.offsets.forEach(off => { playSnareTone(bStart + fig.startBeat + off); }); });
             });
         }
 
-        function renderVisualMelodyStaff(melodyData) {
-            document.getElementById('melody-result-meta').innerText = `Tonart: ${melodyData.key.name} | Ambitus gesichert (kleines f bis h'')`;
-            const target = document.getElementById('melody-vector-staff'); target.innerHTML = '';
-
-            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            svg.setAttribute("viewBox", "0 0 820 140");
-            svg.setAttribute("class", "w-full h-full text-white");
-
-            const linesY = [44, 52, 60, 68, 76];
-            linesY.forEach(y => {
-                let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", "10"); line.setAttribute("y1", y); line.setAttribute("x2", "810"); line.setAttribute("y2", y);
-                line.setAttribute("stroke", "#475569"); line.setAttribute("stroke-width", "1.5");
-                svg.appendChild(line);
-            });
-
-            const barsX = [10, 210, 410, 610, 810];
-            barsX.forEach((x, i) => {
-                let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", x); line.setAttribute("y1", "44"); line.setAttribute("x2", x); line.setAttribute("y2", "76");
-                line.setAttribute("stroke", "#94a3b8"); line.setAttribute("stroke-width", i===0||i===4?"3" : "1.5");
-                svg.appendChild(line);
-            });
-
-            const midiToYMap = {
-                83: 24, 82: 28, 81: 28, 80: 32, 79: 32, 78: 36, 77: 36, 76: 40, 75: 44, 74: 44, 
-                73: 48, 72: 48, 71: 60, 70: 64, 69: 64, 68: 68, 67: 68, 66: 72, 65: 72, 64: 76, 
-                63: 80, 62: 80, 61: 84, 60: 84, 59: 88, 58: 92, 57: 92, 56: 96, 55: 96, 54: 100, 53: 100
-            };
-
-            let processedNotes = melodyData.notes.map(note => {
-                let x = 45 + (note.bar * 200) + (note.startBeat * 38);
-                let y = midiToYMap[note.midi] || 60;
-                let stemGoesUp = y > 60; 
-                return { ...note, x, y, stemGoesUp };
-            });
-
-            for (let b = 0; b < 4; b++) {
-                let barAchtel = processedNotes.filter(n => n.bar === b && n.duration === 0.5);
-                if (barAchtel.length >= 2) {
-                    let chunks = [];
-                    let currentChunk = [barAchtel[0]];
-                    for(let i=1; i<barAchtel.length; i++) {
-                        if (barAchtel[i].startBeat === barAchtel[i-1].startBeat + barAchtel[i-1].duration) {
-                            currentChunk.push(barAchtel[i]);
-                        } else {
-                            chunks.push(currentChunk);
-                            currentChunk = [barAchtel[i]];
-                        }
-                    }
-                    if(currentChunk.length > 0) chunks.push(currentChunk);
-
-                    chunks.forEach(chunk => {
-                        if (chunk.length < 2) return;
-                        let first = chunk[0];
-                        let last = chunk[chunk.length - 1];
-                        
-                        let goesUp = first.stemGoesUp;
-                        chunk.forEach(n => n.stemGoesUp = goesUp);
-
-                        let stemLen = 26;
-                        let y1 = goesUp ? first.y - stemLen : first.y + stemLen;
-                        let y2 = goesUp ? last.y - stemLen : last.y + stemLen;
-                        let x1 = goesUp ? first.x + 5.5 : first.x - 5.5;
-                        let x2 = goesUp ? last.x + 5.5 : last.x - 5.5;
-
-                        let beam = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                        beam.setAttribute("x1", x1); beam.setAttribute("y1", y1);
-                        beam.setAttribute("x2", x2); beam.setAttribute("y2", y2);
-                        beam.setAttribute("stroke", "#ffffff"); beam.setAttribute("stroke-width", "4");
-                        svg.appendChild(beam);
-                    });
-                }
-            }
-
-            processedNotes.forEach((note) => {
-                if (note.y >= 84) {
-                    let ly = 84; while(ly <= note.y) {
-                        if (ly === 84 || ly === 92 || ly === 100) {
-                            let ledger = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                            ledger.setAttribute("x1", note.x - 10); ledger.setAttribute("y1", ly); ledger.setAttribute("x2", note.x + 10); ledger.setAttribute("y2", ly);
-                            ledger.setAttribute("stroke", "#ffffff"); ledger.setAttribute("stroke-width", "1.5");
-                            svg.appendChild(ledger);
-                        }
-                        ly += 4;
-                    }
-                }
-                if (note.y <= 36) {
-                    let ly = 36; while(ly >= note.y) {
-                        if (ly === 28 || ly === 20) {
-                            let ledger = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                            ledger.setAttribute("x1", note.x - 10); ledger.setAttribute("y1", ly); ledger.setAttribute("x2", note.x + 10); ledger.setAttribute("y2", ly);
-                            ledger.setAttribute("stroke", "#ffffff"); ledger.setAttribute("stroke-width", "1.5");
-                            svg.appendChild(ledger);
-                        }
-                        ly -= 4;
-                    }
-                }
-
-                const head = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-                head.setAttribute("cx", note.x); head.setAttribute("cy", note.y); head.setAttribute("rx", "5.8"); head.setAttribute("ry", "4.0");
-                head.setAttribute("transform", `rotate(-18 ${note.x} ${note.y})`);
-                if (note.duration === 2.0) {
-                    head.setAttribute("fill", "none"); head.setAttribute("stroke", "#f59e0b"); head.setAttribute("stroke-width", "2.5");
-                } else {
-                    head.setAttribute("fill", "#f59e0b");
-                }
-                svg.appendChild(head);
-
-                if (note.duration === 1.5) {
-                    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                    dot.setAttribute("cx", note.x + 10); dot.setAttribute("cy", note.y - 2);
-                    dot.setAttribute("r", "2"); dot.setAttribute("fill", "#f59e0b");
-                    svg.appendChild(dot);
-                }
-
-                const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                let stemLen = 26;
-                let hx = note.stemGoesUp ? note.x + 5.5 : note.x - 5.5;
-                let hy_end = note.stemGoesUp ? note.y - stemLen : note.y + stemLen;
-
-                if (note.duration === 0.5) {
-                    let barAchtel = processedNotes.filter(n => n.bar === note.bar && n.duration === 0.5);
-                    let inGroup = false;
-                    for(let i=0; i<barAchtel.length; i++) {
-                        if (barAchtel[i].x === note.x) {
-                            let leftMatch = barAchtel[i-1] && Math.abs(barAchtel[i].startBeat - barAchtel[i-1].startBeat) <= 0.5;
-                            let rightMatch = barAchtel[i+1] && Math.abs(barAchtel[i+1].startBeat - barAchtel[i].startBeat) <= 0.5;
-                            if(leftMatch || rightMatch) inGroup = true;
-                        }
-                    }
-                    if(inGroup) {
-                        let group = barAchtel.filter(n => n.stemGoesUp === note.stemGoesUp);
-                        let first = group[0]; let last = group[group.length-1];
-                        if (first && last && first.x !== last.x) {
-                            let ratio = (note.x - first.x) / (last.x - first.x);
-                            let y1_b = first.stemGoesUp ? first.y - stemLen : first.y + stemLen;
-                            let y2_b = last.stemGoesUp ? last.y - stemLen : last.y + stemLen;
-                            hy_end = y1_b + ratio * (y2_b - y1_b);
-                        }
-                    }
-                }
-
-                stem.setAttribute("x1", hx); stem.setAttribute("y1", note.y);
-                stem.setAttribute("x2", hx); stem.setAttribute("y2", hy_end);
-                stem.setAttribute("stroke", "#ffffff"); stem.setAttribute("stroke-width", "1.5");
-                svg.appendChild(stem);
-
-                if (note.duration === 0.5) {
-                    let hasNeighbors = processedNotes.some(n => n.bar === note.bar && n.duration === 0.5 && n.x !== note.x && Math.abs(n.startBeat - note.startBeat) <= 0.5);
-                    if (!hasNeighbors) {
-                        const flag = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                        if (note.stemGoesUp) {
-                            flag.setAttribute("d", `M ${hx} ${hy_end} c 4,6 8,10 6,18 c -1,-4 -3,-10 -6,-14 Z`);
-                        } else {
-                            flag.setAttribute("d", `M ${hx} ${hy_end} c 4,-6 8,-10 6,-18 c -1,4 -3,10 -6,14 Z`);
-                        }
-                        flag.setAttribute("fill", "#ffffff");
-                        svg.appendChild(flag);
-                    }
-                }
-
-                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                text.setAttribute("x", note.x); text.setAttribute("y", "128");
-                text.setAttribute("font-size", "10"); text.setAttribute("font-family", "monospace");
-                text.setAttribute("text-anchor", "middle"); text.setAttribute("fill", "#94a3b8");
-                text.textContent = note.name;
-                svg.appendChild(text);
-            });
-
-            target.appendChild(svg);
+        function playSolutionMelody(melodyData) {
+            stopAllAudio(); initAudio();
+            let now = audioCtx.currentTime + 0.1;
+            let t = playProceduralCadence(melodyData.key, now) + 0.3;
+            for (let c = 0; c < 4; c++) { playMetronomeClick(t + c, c === 0); }
+            triggerVisualMetronome(t);
+            let startPlayback = t + 4.0;
+            melodyData.notes.forEach(note => { playPianoTone(note.midi, startPlayback + (note.bar * 4.0) + note.startBeat, note.duration - 0.03, 0.35); });
         }
 
-        // Event-Binding für Abbruch und Replay-Steuerung
-        document.getElementById('btn-replay').addEventListener('click', () => { playCurrentGehoerTask(); });
-        document.getElementById('btn-abort').addEventListener('click', () => {
-            stopAllAudio();
-            showScreen('start-screen');
+        function renderRhythmAbc(data) {
+            const abcStr = rhythmToAbc(data);
+            document.getElementById('rhythm-notation-container').innerHTML = "";
+            ABCJS.renderAbc("rhythm-notation-container", abcStr, { responsive: 'resize', staffwidth: 600 });
+        }
+
+        function renderAbcNotation(melodyData) {
+            document.getElementById('melody-result-meta').innerText = `Tonart: ${melodyData.key.name} | Harmonik: ${melodyData.schema.join('-')}`;
+            const abcStr = toAbcNotation(melodyData);
+            document.getElementById('notation-container').innerHTML = "";
+            ABCJS.renderAbc("notation-container", abcStr, { responsive: 'resize', staffwidth: 600 });
+        }
+
+        document.getElementById('btn-audio-test').addEventListener('click', () => {
+            initAudio();
+            playPianoTone(60, audioCtx.currentTime, 0.5, 0.4);
+            playPianoTone(64, audioCtx.currentTime, 0.5, 0.4);
+            playPianoTone(67, audioCtx.currentTime, 0.5, 0.4);
         });
+        document.getElementById('btn-replay').addEventListener('click', () => { playCurrentGehoerTask(); });
+        document.getElementById('btn-abort').addEventListener('click', () => { stopAllAudio(); showScreen('start-screen'); });
         document.getElementById('btn-next').addEventListener('click', () => { advanceQuiz(); });
         document.getElementById('btn-restart').addEventListener('click', () => { showScreen('start-screen'); });
+        document.getElementById('btn-diktat-skip').addEventListener('click', openSkipModal);
     </script>
 </body>
 </html>
