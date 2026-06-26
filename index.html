@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abitur BW - Gehörbildungstraining Musik v9.5 Master</title>
+    <title>Abitur BW - Gehörbildungstraining Musik v9.7 Master</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- ABCJS für exakte Notentext-Wiedergabe -->
@@ -27,13 +27,14 @@
     <!-- Header -->
     <header class="bg-slate-900 text-white shadow-xl py-5 px-4 sticky top-0 z-40 backdrop-blur-md bg-slate-900/95">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="text-center sm:text-left">
+            <!-- Klickbarer Titel als Button -->
+            <button onclick="stopAllAudio(); showScreen('start-screen');" class="text-center sm:text-left cursor-pointer hover:text-indigo-300 transition focus:outline-none">
                 <h1 class="text-2xl font-extrabold tracking-tight flex items-center justify-center gap-2">
                     Gehörbildung Abi BW 
                     <span class="text-xs bg-indigo-500 px-2 py-0.5 rounded-md text-white">Master</span>
                 </h1>
                 <p class="text-xs text-slate-400 mt-1">Prozedurale Klassik-Generierung & exakte Notenschrift</p>
-            </div>
+            </button>
             <div id="global-progress" class="hidden bg-slate-800 px-4 py-2 rounded-full text-sm font-medium border border-slate-700 shadow-sm">
                 Aufgabe <span id="progress-current" class="text-indigo-400 font-bold">0</span> von <span id="progress-total">0</span>
             </div>
@@ -496,8 +497,24 @@
         }
 
         // =========================================================
-        // 3. ABC NOTATION GENERATOR
+        // 3. ABC NOTATION GENERATOR & HELMOLTZ NOTENNAME
         // =========================================================
+        
+        // NEU: Helmholtz-Klangbezeichnung für die UI (z.B. "kleines b", "b'")
+        function midiToNoteName(midi) {
+            const namesGer = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'B', 'H'];
+            let name = namesGer[midi % 12];
+            let oct = Math.floor(midi / 12) - 1; 
+            // Standard Helmholtz: MIDI 60 = c' (Eingestrichenes C)
+            if (oct === 2) return name.toUpperCase() + ",";   // C, (MIDI 36)
+            if (oct === 3) return name.toUpperCase();         // C  (MIDI 48)
+            if (oct === 4) return name.toLowerCase() + "'";   // c' (MIDI 60)
+            if (oct === 5) return name.toLowerCase() + "''";  // c'' (MIDI 72)
+            if (oct === 6) return name.toLowerCase() + "'''"; // c''' (MIDI 84)
+            return name + oct;
+        }
+
+        // KORRIGIERT: Standard ABC Oktavlogik (C = MIDI 60, c = MIDI 72, c' = MIDI 84)
         function midiToAbc(midi, key) {
             const notesSharp = ['C', '^C', 'D', '^D', 'E', 'F', '^F', 'G', '^G', 'A', '^A', 'B'];
             const notesFlat = ['C', '_D', 'D', '_E', 'E', 'F', '_G', 'G', '_A', 'A', '_B', 'B'];
@@ -505,20 +522,15 @@
             const notes = useFlats ? notesFlat : notesSharp;
             const noteStr = notes[midi % 12];
             
-            let octave = Math.floor(midi / 12) - 1; // MIDI 60 = Oktave 4
             let letter = noteStr.slice(-1);
             let acc = noteStr.length > 1 ? noteStr.slice(0, -1) : '';
             
-            if (octave <= 3) {
-                return acc + letter.toUpperCase() + ",".repeat(4 - octave);
-            } else if (octave === 4) {
-                return acc + letter.toUpperCase();
-            } else if (octave === 5) {
-                return acc + letter.toLowerCase();
-            } else if (octave === 6) {
-                return acc + letter.toLowerCase() + "'";
-            }
-            return noteStr;
+            // Exakte Zuordnung für ABCJS
+            if (midi >= 84) return acc + letter.toLowerCase() + "'";      // MIDI 84-95 -> c'
+            else if (midi >= 72) return acc + letter.toLowerCase();       // MIDI 72-83 -> c
+            else if (midi >= 60) return acc + letter.toUpperCase();       // MIDI 60-71 -> C
+            else if (midi >= 48) return acc + letter.toUpperCase() + ","; // MIDI 48-59 -> C,
+            else return acc + letter.toUpperCase() + ",,";                // MIDI 36-47 -> C,,
         }
 
         function toAbcNotation(melodyData) {
@@ -538,7 +550,6 @@
             return abc;
         }
 
-        // KOMPLETT NEU GESCHRIEBEN: Generiert saubere, gebalkte Noten ohne Akkord-Klammern
         function rhythmToAbc(data) {
             let abc = "X:1\nT: Rhythmusdiktat\nM:4/4\nL:1/16\nK:C\nV:1 clef=perc\n";
             data.forEach((bar, idx) => {
@@ -546,7 +557,6 @@
                 bar.forEach(cell => {
                     if (cell.id.startsWith("triole")) {
                         let noteLen = cell.duration === 1.0 ? 2 : 4; 
-                        // (3 leitet Triole ein, danach Noten direkt aneinander (B2B2B2)
                         abc += "(3" + Array(3).fill("B" + noteLen).join("");
                     } else {
                         let offsets = cell.offsets;
@@ -563,7 +573,7 @@
                         }
                         abc += cellStr;
                     }
-                    abc += " "; // Wichtig: Leerzeichen nach jeder Zelle, damit Takteinteilung sauber bleibt
+                    abc += " ";
                 });
             });
             abc += "|]";
@@ -880,15 +890,6 @@
                 });
                 setTimeout(() => { playCurrentGehoerTask(); }, 300);
             }
-        }
-
-        function midiToNoteName(midi) {
-            const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-            let name = names[midi % 12];
-            let octave = Math.floor(midi / 12) - 1;
-            if (octave === 4) return name.toLowerCase();
-            if (octave === 5) return name.toLowerCase() + "'";
-            return name + octave;
         }
 
         function unlockMobileAudio() {
