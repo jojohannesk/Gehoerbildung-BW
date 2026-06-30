@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abitur BW - Gehörbildungstraining Musik v9.7 Master</title>
+    <title>Abitur BW - Gehörbildungstraining Musik v10.2 Offiziell</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- ABCJS für exakte Notentext-Wiedergabe -->
@@ -27,13 +27,12 @@
     <!-- Header -->
     <header class="bg-slate-900 text-white shadow-xl py-5 px-4 sticky top-0 z-40 backdrop-blur-md bg-slate-900/95">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <!-- Klickbarer Titel als Button -->
             <button onclick="stopAllAudio(); showScreen('start-screen');" class="text-center sm:text-left cursor-pointer hover:text-indigo-300 transition focus:outline-none">
                 <h1 class="text-2xl font-extrabold tracking-tight flex items-center justify-center gap-2">
                     Gehörbildung Abi BW 
-                    <span class="text-xs bg-indigo-500 px-2 py-0.5 rounded-md text-white">Master</span>
+                    <span class="text-xs bg-indigo-500 px-2 py-0.5 rounded-md text-white">Offiziell</span>
                 </h1>
-                <p class="text-xs text-slate-400 mt-1">Prozedurale Klassik-Generierung & exakte Notenschrift</p>
+                <p class="text-xs text-slate-400 mt-1">Angepasst an die prüfungsspezifischen Vorgaben (Abitur 2023+)</p>
             </button>
             <div id="global-progress" class="hidden bg-slate-800 px-4 py-2 rounded-full text-sm font-medium border border-slate-700 shadow-sm">
                 Aufgabe <span id="progress-current" class="text-indigo-400 font-bold">0</span> von <span id="progress-total">0</span>
@@ -78,7 +77,7 @@
             </div>
             <h2 class="text-3xl md:text-4xl font-extrabold text-slate-950 mb-3 tracking-tight">Prüfungstraining Gehörbildung</h2>
             <p class="text-slate-500 mb-8 max-w-md mx-auto text-sm md:text-base leading-relaxed">
-                Komplexe Rhythmusdiktate und prozedural generierte, klassische Melodiediktate im Stil von Haydn und Mozart.
+                Exakt an die Vorgaben des Gymnasialen Musik-Abiturs Baden-Württemberg angepasst.
             </p>
 
             <div class="mb-8 inline-block">
@@ -94,45 +93,45 @@
                     <div>
                         <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition">I</div>
                         <span class="font-bold text-slate-900 block text-base">Intervalle</span>
-                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">Prime bis Oktave bestimmen mit echtem Flügel-Sound.</span>
+                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">7 Intervalle, Tonraum g bis g2. Erst einzeln, dann zusammen.</span>
                     </div>
-                    <span class="text-[11px] font-bold text-indigo-700 mt-4 bg-indigo-50 px-2.5 py-1 rounded-md self-start">10 Aufgaben</span>
+                    <span class="text-[11px] font-bold text-indigo-700 mt-4 bg-indigo-50 px-2.5 py-1 rounded-md self-start">7 Aufgaben (7 Pkt)</span>
                 </button>
 
                 <button onclick="selectAndStartMode('chords')" class="group p-5 bg-white hover:bg-purple-50 border border-slate-200 hover:border-purple-300 rounded-2xl transition-all text-left cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg">
                     <div>
                         <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition">A</div>
-                        <span class="font-bold text-slate-900 block text-base">Vierklänge</span>
-                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">Dur, Moll, Sixte ajoutée, übermäßig, Septakkorde.</span>
+                        <span class="font-bold text-slate-900 block text-base">Akkorde</span>
+                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">7 Akkorde, 4-stimmig, Grundstellung, eng. Tonraum g bis c3.</span>
                     </div>
-                    <span class="text-[11px] font-bold text-purple-700 mt-4 bg-purple-50 px-2.5 py-1 rounded-md self-start">10 Aufgaben</span>
+                    <span class="text-[11px] font-bold text-purple-700 mt-4 bg-purple-50 px-2.5 py-1 rounded-md self-start">7 Aufgaben (7 Pkt)</span>
                 </button>
 
                 <button onclick="selectAndStartMode('rhythm')" class="group p-5 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-2xl transition-all text-left cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg">
                     <div>
                         <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition">R</div>
                         <span class="font-bold text-slate-900 block text-base">Rhythmus-Diktat</span>
-                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">16tel-Noten, Punktierungen, Triolen. Min. 2 Vokabeln pro Takt!</span>
+                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">4 Takte, 4/4. Synkopen, Triolen, Punktierungen. Auf einem Klavierton.</span>
                     </div>
-                    <span class="text-[11px] font-bold text-emerald-700 mt-4 bg-emerald-50 px-2.5 py-1 rounded-md self-start">1 Diktat (11 Läufe)</span>
+                    <span class="text-[11px] font-bold text-emerald-700 mt-4 bg-emerald-50 px-2.5 py-1 rounded-md self-start">1 Diktat (8 Pkt)</span>
                 </button>
 
                 <button onclick="selectAndStartMode('melody')" class="group p-5 bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-2xl transition-all text-left cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg">
                     <div>
                         <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition">M</div>
-                        <span class="font-bold text-slate-900 block text-base">Melodiediktat (Klassik)</span>
-                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">Haydn/Mozart-Stil. Dynamisch generiert, echte Notenschrift.</span>
+                        <span class="font-bold text-slate-900 block text-base">Melodiediktat</span>
+                        <span class="text-xs text-slate-500 mt-1 block leading-relaxed">Dur & harm. Moll. Ambitus > Oktave. Leitereigene Töne.</span>
                     </div>
-                    <span class="text-[11px] font-bold text-amber-700 mt-4 bg-amber-50 px-2.5 py-1 rounded-md self-start">1 Diktat (11 Läufe)</span>
+                    <span class="text-[11px] font-bold text-amber-700 mt-4 bg-amber-50 px-2.5 py-1 rounded-md self-start">1 Diktat (8 Pkt)</span>
                 </button>
 
                 <button onclick="selectAndStartMode('mix')" class="group p-5 bg-gradient-to-br from-slate-900 to-slate-800 hover:from-indigo-950 hover:to-slate-900 border border-slate-800 rounded-2xl transition-all text-left cursor-pointer shadow-md flex flex-col justify-between sm:col-span-2 hover:-translate-y-1 hover:shadow-xl">
                     <div>
                         <div class="w-9 h-9 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-bold text-sm mb-3 group-hover:scale-110 transition shadow-sm">★</div>
                         <span class="font-bold text-white block text-base">Vollständige Gehörbildungs-Prüfung</span>
-                        <span class="text-slate-300 text-xs mt-1 block leading-relaxed">Kompletter Ablauf: Rhythmus, klassische Melodie mit I-IV-V-I Kadenz, 5 Intervalle, 5 Vierklänge.</span>
+                        <span class="text-slate-300 text-xs mt-1 block leading-relaxed">Kompletter Abitur-Ablauf: Rhythmus, Melodie, 7 Intervalle, 7 Akkorde.</span>
                     </div>
-                    <span class="text-[11px] font-bold text-indigo-400 mt-4 bg-slate-800 px-2.5 py-1 rounded-md self-start">Abitur-Simulation (12 Aufgaben)</span>
+                    <span class="text-[11px] font-bold text-indigo-400 mt-4 bg-slate-800 px-2.5 py-1 rounded-md self-start">16 Aufgaben (30 Pkt)</span>
                 </button>
             </div>
         </div>
@@ -223,7 +222,7 @@
                 
                 <div id="score-block" class="mt-6 inline-block bg-slate-50 border border-slate-200 px-8 py-4 rounded-2xl shadow-sm">
                     <span class="text-4xl font-black text-indigo-900" id="result-score">0 / 0</span>
-                    <span class="block text-[11px] uppercase tracking-wider text-slate-500 font-bold mt-1">Richtige Antworten</span>
+                    <span class="block text-[11px] uppercase tracking-wider text-slate-500 font-bold mt-1">Richtige Antworten (Intervalle & Akkorde)</span>
                 </div>
             </div>
 
@@ -287,7 +286,7 @@
 
     <script>
         // =========================================================
-        // 1. RHYTHMISCHE VOKABULARE
+        // 1. RHYTHMISCHE VOKABULARE (Mit Synkopen!)
         // =========================================================
         const RHYTHM_1BEAT = [
             { id: "viertel", duration: 1.0, name: "Viertel", offsets: [0] },
@@ -297,14 +296,16 @@
             { id: "achtel_sechz", duration: 1.0, name: "1 Achtel + 2 Sechzehntel", offsets: [0, 0.5, 0.75] },
             { id: "triole_1", duration: 1.0, name: "Triole", offsets: [0, 0.333, 0.666] },
             { id: "punk_acht_sechz", duration: 1.0, name: "Punktierte Achtel + Sechzehntel", offsets: [0, 0.75] },
-            { id: "sechz_punk_acht", duration: 1.0, name: "Sechzehntel + Punktierte Achtel", offsets: [0, 0.25] }
+            { id: "sechz_punk_acht", duration: 1.0, name: "Sechzehntel + Punktierte Achtel", offsets: [0, 0.25] },
+            { id: "synkope_1", duration: 1.0, name: "Synkope (16tel + punktiertes 8tel)", offsets: [0, 0.25] } 
         ];
 
         const RHYTHM_2BEAT = [
             { id: "halbe", duration: 2.0, name: "Halbe Note", offsets: [0] },
             { id: "punk_viert_acht", duration: 2.0, name: "Punktierte Viertel + Achtel", offsets: [0, 1.5] },
             { id: "acht_punk_viert", duration: 2.0, name: "Achtel + Punktierte Viertel", offsets: [0, 0.5] },
-            { id: "triole_2", duration: 2.0, name: "Triole (3 Viertel)", offsets: [0, 0.666, 1.333] }
+            { id: "triole_2", duration: 2.0, name: "Triole (3 Viertel)", offsets: [0, 0.666, 1.333] },
+            { id: "synkope_2", duration: 2.0, name: "Synkope (8tel + Viertel + 8tel)", offsets: [0, 0.5, 1.5] } 
         ];
 
         const RHYTHM_STEPS = [
@@ -342,14 +343,15 @@
         ];
 
         // =========================================================
-        // 2. KLASSE FÜR MELODIE-GENERIERUNG (Haydn/Mozart Stil)
+        // 2. MELODIE-GENERIERUNG (Dur & Harmonisch Moll)
         // =========================================================
         const KEY_CATALOG = [
-            { name: "C-Dur", root: 60, scale: [0,2,4,5,7,9,11], abcKey: "C" },
-            { name: "G-Dur", root: 67, scale: [0,2,4,5,7,9,11], abcKey: "G" },
-            { name: "D-Dur", root: 62, scale: [0,2,4,5,7,9,11], abcKey: "D" },
-            { name: "F-Dur", root: 65, scale: [0,2,4,5,7,9,11], abcKey: "F" },
-            { name: "B-Dur", root: 58, scale: [0,2,4,5,7,9,11], abcKey: "Bb" }
+            { name: "C-Dur", isMajor: true, root: 60, scale: [0,2,4,5,7,9,11], abcKey: "C" },
+            { name: "G-Dur", isMajor: true, root: 67, scale: [0,2,4,5,7,9,11], abcKey: "G" },
+            { name: "D-Dur", isMajor: true, root: 62, scale: [0,2,4,5,7,9,11], abcKey: "D" },
+            { name: "a-Moll", isMajor: false, root: 57, scale: [0,2,3,5,7,8,11], abcKey: "Am" },
+            { name: "e-Moll", isMajor: false, root: 64, scale: [0,2,3,5,7,8,11], abcKey: "Em" },
+            { name: "d-Moll", isMajor: false, root: 62, scale: [0,2,3,5,7,8,11], abcKey: "Dm" }
         ];
 
         const HARMONY_SCHEMAS = [
@@ -357,27 +359,21 @@
             [1, 6, 4, 5], [1, 2, 5, 1], [1, 4, 2, 5], [1, 6, 2, 5]
         ];
 
-        const CHORD_DEGREES = {
-            1: [0, 2, 4, 7],
-            2: [1, 3, 5, 8],
-            4: [3, 5, 7, 10],
-            5: [4, 6, 8, 11],
-            6: [5, 7, 9, 12]
-        };
+        // FEHLERBEHOBUNG: Moll-Akkordtabelle erweitert, um Abstürze zu vermeiden
+        function getChordDegrees(degree, isMajor) {
+            if (isMajor) {
+                return { 1: [0, 2, 4, 7], 2: [1, 3, 5, 8], 4: [3, 5, 7, 10], 5: [4, 6, 8, 11], 6: [5, 7, 9, 12] }[degree];
+            } else {
+                return { 1: [0, 2, 4, 7], 2: [1, 3, 5, 8], 3: [2, 4, 6, 9], 4: [3, 5, 7, 10], 5: [4, 6, 8, 11], 6: [5, 7, 9, 12], 7: [6, 8, 9, 13] }[degree];
+            }
+        }
 
         const MELODY_RHYTHMS_NORMAL = [
-            [1, 1, 1, 1], 
-            [0.5, 0.5, 1, 2], 
-            [1.5, 0.5, 1, 1], 
-            [1, 0.5, 0.5, 1, 1], 
-            [0.25, 0.25, 0.5, 1, 2],
-            [1, 0.25, 0.25, 0.5, 1, 1]
+            [1, 1, 1, 1], [0.5, 0.5, 1, 2], [1.5, 0.5, 1, 1], 
+            [1, 0.5, 0.5, 1, 1], [0.25, 0.25, 0.5, 1, 2], [1, 0.25, 0.25, 0.5, 1, 1]
         ];
         const MELODY_RHYTHMS_CADENCE = [
-            [1, 1, 2], 
-            [1.5, 0.5, 2], 
-            [0.5, 0.5, 1, 2], 
-            [1, 0.5, 0.5, 2]
+            [1, 1, 2], [1.5, 0.5, 2], [0.5, 0.5, 1, 2], [1, 0.5, 0.5, 2]
         ];
 
         const MELODY_CONTOURS = {
@@ -417,12 +413,12 @@
 
             for (let b = 0; b < 4; b++) {
                 let degree = schema[b];
-                let chordTones = CHORD_DEGREES[degree];
+                let chordTones = getChordDegrees(degree, key.isMajor);
                 let rhythmCell = (b === 3) ? MELODY_RHYTHMS_CADENCE[Math.floor(Math.random() * MELODY_RHYTHMS_CADENCE.length)] : MELODY_RHYTHMS_NORMAL[Math.floor(Math.random() * MELODY_RHYTHMS_NORMAL.length)];
                 let barSteps = [];
 
                 if (b === 3) {
-                    let penultimateStep = Math.random() < 0.5 ? 1 : -1;
+                    let penultimateStep = Math.random() < 0.5 ? 1 : -1; 
                     barSteps[rhythmCell.length - 1] = 0;
                     barSteps[rhythmCell.length - 2] = penultimateStep;
                     let firstChordStep = chordTones.reduce((prev, curr) => Math.abs(curr - currentStep) < Math.abs(prev - currentStep) ? curr : prev);
@@ -465,7 +461,10 @@
             let midis = notes.map(n => n.midi);
             let minMidi = Math.min(...midis);
             let maxMidi = Math.max(...midis);
-            if (maxMidi - minMidi > 12) return false;
+            
+            if (maxMidi - minMidi <= 12) return false; 
+            if (maxMidi - minMidi > 16) return false;
+            
             for (let i = 1; i < notes.length; i++) {
                 let prev = notes[i-1]; let curr = notes[i];
                 let diff = Math.abs(curr.midi - prev.midi); let sign = Math.sign(curr.midi - prev.midi);
@@ -499,22 +498,18 @@
         // =========================================================
         // 3. ABC NOTATION GENERATOR & HELMOLTZ NOTENNAME
         // =========================================================
-        
-        // NEU: Helmholtz-Klangbezeichnung für die UI (z.B. "kleines b", "b'")
         function midiToNoteName(midi) {
             const namesGer = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'B', 'H'];
             let name = namesGer[midi % 12];
             let oct = Math.floor(midi / 12) - 1; 
-            // Standard Helmholtz: MIDI 60 = c' (Eingestrichenes C)
-            if (oct === 2) return name.toUpperCase() + ",";   // C, (MIDI 36)
-            if (oct === 3) return name.toUpperCase();         // C  (MIDI 48)
-            if (oct === 4) return name.toLowerCase() + "'";   // c' (MIDI 60)
-            if (oct === 5) return name.toLowerCase() + "''";  // c'' (MIDI 72)
-            if (oct === 6) return name.toLowerCase() + "'''"; // c''' (MIDI 84)
+            if (oct === 2) return name.toUpperCase() + ",";   
+            if (oct === 3) return name.toUpperCase();         
+            if (oct === 4) return name.toLowerCase() + "'";   
+            if (oct === 5) return name.toLowerCase() + "''";  
+            if (oct === 6) return name.toLowerCase() + "'''"; 
             return name + oct;
         }
 
-        // KORRIGIERT: Standard ABC Oktavlogik (C = MIDI 60, c = MIDI 72, c' = MIDI 84)
         function midiToAbc(midi, key) {
             const notesSharp = ['C', '^C', 'D', '^D', 'E', 'F', '^F', 'G', '^G', 'A', '^A', 'B'];
             const notesFlat = ['C', '_D', 'D', '_E', 'E', 'F', '_G', 'G', '_A', 'A', '_B', 'B'];
@@ -525,12 +520,11 @@
             let letter = noteStr.slice(-1);
             let acc = noteStr.length > 1 ? noteStr.slice(0, -1) : '';
             
-            // Exakte Zuordnung für ABCJS
-            if (midi >= 84) return acc + letter.toLowerCase() + "'";      // MIDI 84-95 -> c'
-            else if (midi >= 72) return acc + letter.toLowerCase();       // MIDI 72-83 -> c
-            else if (midi >= 60) return acc + letter.toUpperCase();       // MIDI 60-71 -> C
-            else if (midi >= 48) return acc + letter.toUpperCase() + ","; // MIDI 48-59 -> C,
-            else return acc + letter.toUpperCase() + ",,";                // MIDI 36-47 -> C,,
+            if (midi >= 84) return acc + letter.toLowerCase() + "'";      
+            else if (midi >= 72) return acc + letter.toLowerCase();       
+            else if (midi >= 60) return acc + letter.toUpperCase();       
+            else if (midi >= 48) return acc + letter.toUpperCase() + ","; 
+            else return acc + letter.toUpperCase() + ",,";                
         }
 
         function toAbcNotation(melodyData) {
@@ -604,6 +598,7 @@
         }
 
         function stopAllAudio() {
+            if (!audioCtx) return;
             activeAudioNodes.forEach(node => { try { node.stop(); } catch(e) {} });
             activeAudioNodes = [];
             diktatPlayTimers.forEach(timer => clearTimeout(timer));
@@ -713,27 +708,12 @@
             metronomeTimer = setInterval(tick, 50);
         }
 
-        function playSnareTone(startTime) {
-            const bufferSize = audioCtx.sampleRate * 0.1;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-            const noiseNode = audioCtx.createBufferSource(); noiseNode.buffer = buffer;
-            const filter = audioCtx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.setValueAtTime(1600, startTime);
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.25, startTime);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
-            noiseNode.connect(filter).connect(noiseGain).connect(audioCtx.destination);
-            noiseNode.start(startTime); noiseNode.stop(startTime + 0.1);
-            activeAudioNodes.push(noiseNode);
-        }
-
         function playProceduralCadence(keyObj, startAudioTime) {
             const fixedSchema = [1, 4, 5, 1];
             let t = startAudioTime;
             for (let b = 0; b < 4; b++) {
                 let degree = fixedSchema[b];
-                let chordMidiArr = CHORD_DEGREES[degree].map(s => stepToMidi(s, keyObj));
+                let chordMidiArr = getChordDegrees(degree, keyObj.isMajor).map(s => stepToMidi(s, keyObj));
                 let dur = b < 3 ? 0.7 : 0.9;
                 chordMidiArr.forEach(m => playPianoTone(m, t, dur, 0.22));
                 t += b < 3 ? 0.8 : 1.2;
@@ -742,38 +722,54 @@
         }
 
         // =========================================================
-        // 5. RHYTHMUS GENERATOR
+        // 5. RHYTHMUS GENERATOR (Mit Vorgaben-Prüfung)
         // =========================================================
         function generateRhythmData() {
             let dictation = [];
-            for (let bar = 0; bar < 4; bar++) {
-                let barFigures = [];
-                let beat = 0;
-                let isLastBar = (bar === 3);
+            let hasTriole = false, hasPunktierung = false, hasSyncope = false;
+            let attempts = 0;
+
+            while (attempts < 50) {
+                dictation = [];
+                hasTriole = false; hasPunktierung = false; hasSyncope = false;
                 
-                while (beat < 4) {
-                    if (isLastBar && beat === 2) {
-                        barFigures.push({ ...RHYTHM_2BEAT[0] });
-                        beat += 2;
-                    } else if (beat <= 2 && Math.random() < 0.3 && !(isLastBar && beat === 2)) {
-                        let cell = { ...RHYTHM_2BEAT[Math.floor(Math.random() * RHYTHM_2BEAT.length)] };
-                        barFigures.push(cell); beat += 2;
-                    } else {
-                        let cell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
-                        barFigures.push(cell); beat += 1;
+                for (let bar = 0; bar < 4; bar++) {
+                    let barFigures = [];
+                    let beat = 0;
+                    let isLastBar = (bar === 3);
+                    
+                    while (beat < 4) {
+                        if (isLastBar && beat === 2) {
+                            barFigures.push({ ...RHYTHM_2BEAT[0] });
+                            beat += 2;
+                        } else if (beat <= 2 && Math.random() < 0.3 && !(isLastBar && beat === 2)) {
+                            let cell = { ...RHYTHM_2BEAT[Math.floor(Math.random() * RHYTHM_2BEAT.length)] };
+                            barFigures.push(cell); beat += 2;
+                        } else {
+                            let cell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
+                            barFigures.push(cell); beat += 1;
+                        }
                     }
-                }
-                if (barFigures.every(f => f.id === "viertel")) {
-                    let replaceIdx = barFigures.findIndex(f => f.duration === 1.0);
-                    if (replaceIdx !== -1) {
-                        let newCell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
-                        while(newCell.id === "viertel") newCell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
-                        barFigures[replaceIdx] = newCell;
+                    if (barFigures.every(f => f.id === "viertel")) {
+                        let replaceIdx = barFigures.findIndex(f => f.duration === 1.0);
+                        if (replaceIdx !== -1) {
+                            let newCell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
+                            while(newCell.id === "viertel") newCell = { ...RHYTHM_1BEAT[Math.floor(Math.random() * RHYTHM_1BEAT.length)] };
+                            barFigures[replaceIdx] = newCell;
+                        }
                     }
+                    let currentBeat = 0;
+                    barFigures.forEach(fig => { fig.startBeat = currentBeat; currentBeat += fig.duration; });
+                    dictation.push(barFigures);
                 }
-                let currentBeat = 0;
-                barFigures.forEach(fig => { fig.startBeat = currentBeat; currentBeat += fig.duration; });
-                dictation.push(barFigures);
+
+                let allFigs = dictation.flat();
+                if (allFigs.some(f => f.id.startsWith("triole"))) hasTriole = true;
+                if (allFigs.some(f => f.id.startsWith("punk") || f.id === "halbe")) hasPunktierung = true;
+                if (allFigs.some(f => f.id.startsWith("synkope"))) hasSyncope = true;
+
+                if (hasTriole && hasPunktierung && hasSyncope) break;
+                attempts++;
             }
             return dictation;
         }
@@ -784,7 +780,7 @@
         async function selectAndStartMode(mode) {
             currentMode = mode;
             initAudio();
-            if (mode !== 'rhythm') { await loadPianoSamples(); }
+            await loadPianoSamples(); 
             generateQuizStructure(mode);
             showScreen('quiz-screen');
             renderQuestion();
@@ -792,23 +788,25 @@
 
         function generateQuizStructure(mode) {
             quizQuestions = [];
-            if (mode === 'rhythm' || mode === 'mix') quizQuestions.push({ type: 'rhythm', rhythmData: generateRhythmData() });
+            if (mode === 'rhythm' || mode === 'mix') {
+                let rhythmMidi = Math.floor(Math.random() * 13) + 55; 
+                quizQuestions.push({ type: 'rhythm', rhythmData: generateRhythmData(), playMidi: rhythmMidi });
+            }
             if (mode === 'melody' || mode === 'mix') quizQuestions.push({ type: 'melody', melodyData: generateClassicalDictation(1) });
             
-            const minMidi = 55, maxMidi = 68;
             if (mode === 'intervals' || mode === 'mix') {
-                let count = mode === 'mix' ? 5 : 10;
+                let count = 7; 
                 for(let i=0; i<count; i++) {
                     let rInt = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
-                    let rRoot = Math.floor(Math.random() * (maxMidi - minMidi)) + minMidi;
+                    let rRoot = Math.floor(Math.random() * 13) + 55; 
                     quizQuestions.push({ type: 'interval', name: rInt.name, rootNote: rRoot, offsets: [0, rInt.semitones] });
                 }
             }
             if (mode === 'chords' || mode === 'mix') {
-                let count = mode === 'mix' ? 5 : 10;
+                let count = 7; 
                 for(let i=0; i<count; i++) {
                     let rCho = CHORDS[Math.floor(Math.random() * CHORDS.length)];
-                    let rRoot = Math.floor(Math.random() * (maxMidi - minMidi)) + minMidi;
+                    let rRoot = Math.floor(Math.random() * 18) + 55; 
                     quizQuestions.push({ type: 'chord', name: rCho.name, rootNote: rRoot, offsets: rCho.offsets });
                 }
             }
@@ -847,7 +845,7 @@
                     typeBadge.className = "bg-emerald-100 text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full";
                     melodyOrientBox.classList.add('hidden');
                 } else {
-                    typeBadge.innerText = "Melodiediktat (Klassik)";
+                    typeBadge.innerText = "Melodiediktat";
                     typeBadge.className = "bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full";
                     melodyOrientBox.classList.remove('hidden');
                     let firstNote = task.melodyData.notes[0];
@@ -860,8 +858,8 @@
                     
                     document.getElementById('btn-melody-orient').onclick = () => {
                         stopAllAudio(); initAudio();
-                        let tEnd = playProceduralCadence(task.melodyData.key, audioCtx.currentTime + 0.05);
-                        playPianoTone(firstNote.midi, tEnd + 0.4, 1.5, 0.4);
+                        let tEnd = playProceduralCadence(task.melodyData.key, audioCtx.currentTime + 0.05) + 0.2;
+                        playPianoTone(firstNote.midi, tEnd, 1.5, 0.4); // Kurz zur Orientierung
                     };
                 }
                 setupDiktatStepUI();
@@ -922,9 +920,17 @@
             stopAllAudio(); initAudio();
             const task = quizQuestions[currentIdx];
             let now = audioCtx.currentTime;
-            task.offsets.forEach((offset, i) => { playPianoTone(task.rootNote + offset, now + (i * 0.4), 0.5); });
-            let simStart = now + (task.offsets.length * 0.4) + 0.3;
-            task.offsets.forEach(offset => { playPianoTone(task.rootNote + offset, simStart, 1.5); });
+            
+            let gap = 0.6; 
+            
+            task.offsets.forEach((offset, i) => { 
+                playPianoTone(task.rootNote + offset, now + (i * gap), gap - 0.02, 0.35); 
+            });
+            
+            let simStart = now + (task.offsets.length * gap) + 0.5;
+            task.offsets.forEach(offset => { 
+                playPianoTone(task.rootNote + offset, simStart, 2.0, 0.35); 
+            });
         }
 
         function setupDiktatStepUI() {
@@ -952,10 +958,16 @@
                 let now = audioCtx.currentTime + 0.05;
                 const task = quizQuestions[currentIdx];
                 let cadenceDuration = 0;
+                
+                // NEU: Anfangston im 1. Durchgang nach Kadenz für 1/2 Note spielen
                 if (task.type === 'melody' && currentDiktatStep === 0) {
                     now = playProceduralCadence(task.melodyData.key, now) + 0.2;
-                    cadenceDuration = 3.6; 
+                    let firstNoteMidi = task.melodyData.notes[0].midi;
+                    playPianoTone(firstNoteMidi, now, 2.0, 0.4); // Halbe Note = 2 Sekunden
+                    now += 2.0 + 0.3; // Halbe Note + kurze Pause
+                    cadenceDuration = 3.6 + 2.3; 
                 }
+                
                 for (let c = 0; c < 4; c++) { playMetronomeClick(now + c, c === 0); }
                 triggerVisualMetronome(now);
                 let startPlayback = now + 4.0;
@@ -965,7 +977,11 @@
                     activeBars.forEach((barIdx, pos) => {
                         let bStart = startPlayback + (pos * 4.0);
                         task.rhythmData[barIdx].forEach(fig => {
-                            fig.offsets.forEach(off => { playSnareTone(bStart + fig.startBeat + off); });
+                            fig.offsets.forEach((off, i) => { 
+                                let dur = (i === fig.offsets.length - 1) ? fig.duration - off : fig.offsets[i+1] - off;
+                                let noteDur = Math.max(0.1, dur - 0.02);
+                                playPianoTone(task.playMidi, bStart + fig.startBeat + off, noteDur, 0.3); 
+                            });
                         });
                     });
                 } else {
@@ -1036,7 +1052,7 @@
             if (rTask) { 
                 rContainer.classList.remove('hidden'); 
                 renderRhythmAbc(rTask.rhythmData); 
-                document.getElementById('btn-play-rhythm-solution').onclick = () => playSolutionRhythm(rTask.rhythmData); 
+                document.getElementById('btn-play-rhythm-solution').onclick = () => playSolutionRhythm(rTask); 
             } else rContainer.classList.add('hidden');
 
             const mTask = quizQuestions.find(q => q.type === 'melody');
@@ -1057,15 +1073,21 @@
             } else { document.getElementById('detail-table-block').classList.add('hidden'); }
         }
 
-        function playSolutionRhythm(rhythmData) {
+        function playSolutionRhythm(task) {
             stopAllAudio(); initAudio();
             let now = audioCtx.currentTime + 0.1;
             for (let c = 0; c < 4; c++) { playMetronomeClick(now + c, c === 0); }
             triggerVisualMetronome(now);
             let startPlayback = now + 4.0;
-            rhythmData.forEach((bar, barIdx) => {
+            task.rhythmData.forEach((bar, barIdx) => {
                 let bStart = startPlayback + (barIdx * 4.0);
-                bar.forEach(fig => { fig.offsets.forEach(off => { playSnareTone(bStart + fig.startBeat + off); }); });
+                bar.forEach(fig => { 
+                    fig.offsets.forEach((off, i) => { 
+                        let dur = (i === fig.offsets.length - 1) ? fig.duration - off : fig.offsets[i+1] - off;
+                        let noteDur = Math.max(0.1, dur - 0.02);
+                        playPianoTone(task.playMidi, bStart + fig.startBeat + off, noteDur, 0.3); 
+                    }); 
+                });
             });
         }
 
