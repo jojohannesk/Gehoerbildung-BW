@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abitur BW - Gehörbildungstraining Musik v10.2 Offiziell</title>
+    <title>Abitur BW - Gehörbildungstraining Musik v10.4 Offiziell</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- ABCJS für exakte Notentext-Wiedergabe -->
@@ -286,7 +286,7 @@
 
     <script>
         // =========================================================
-        // 1. RHYTHMISCHE VOKABULARE (Mit Synkopen!)
+        // 1. RHYTHMISCHE VOKABULARE
         // =========================================================
         const RHYTHM_1BEAT = [
             { id: "viertel", duration: 1.0, name: "Viertel", offsets: [0] },
@@ -359,7 +359,6 @@
             [1, 6, 4, 5], [1, 2, 5, 1], [1, 4, 2, 5], [1, 6, 2, 5]
         ];
 
-        // FEHLERBEHOBUNG: Moll-Akkordtabelle erweitert, um Abstürze zu vermeiden
         function getChordDegrees(degree, isMajor) {
             if (isMajor) {
                 return { 1: [0, 2, 4, 7], 2: [1, 3, 5, 8], 4: [3, 5, 7, 10], 5: [4, 6, 8, 11], 6: [5, 7, 9, 12] }[degree];
@@ -575,7 +574,7 @@
         }
 
         // =========================================================
-        // 4. AUDIO ENGINE & STATE
+        // 4. AUDIO ENGINE & STATE (Tenuto/Legato Fix)
         // =========================================================
         let audioCtx = null;
         let quizQuestions = []; 
@@ -593,13 +592,26 @@
         const sampleBaseUrl = "https://tonejs.github.io/audio/salamander/";
 
         function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!audioCtx) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.error("AudioContext konnte nicht erstellt werden:", e);
+                    return;
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
         }
 
         function stopAllAudio() {
             if (!audioCtx) return;
-            activeAudioNodes.forEach(node => { try { node.stop(); } catch(e) {} });
+            activeAudioNodes.forEach(node => { 
+                try { 
+                    if (node.stop) node.stop(); 
+                } catch(e) {} 
+            });
             activeAudioNodes = [];
             diktatPlayTimers.forEach(timer => clearTimeout(timer));
             diktatPlayTimers = [];
@@ -613,9 +625,12 @@
         async function loadPianoSamples() {
             if (samplesLoaded) return true;
             initAudio();
+            if (!audioCtx) return false;
+            
             document.getElementById('loading-screen').classList.remove('hidden');
             const midiNotes = Object.keys(pianoSamples).map(Number);
             let loadedCount = 0;
+            
             const promises = midiNotes.map(async (midi) => {
                 const noteName = pianoSamples[midi];
                 const url = `${sampleBaseUrl}${noteName}.mp3`;
@@ -625,12 +640,14 @@
                     const arrayBuffer = await response.arrayBuffer();
                     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                     audioBuffers[midi] = audioBuffer;
-                } catch (e) { console.error("Fallback aktiv.", e); } 
-                finally {
+                } catch (e) { 
+                    console.error("Fallback für " + noteName + " aktiv.", e); 
+                } finally {
                     loadedCount++;
                     document.getElementById('loading-bar').style.width = `${Math.round((loadedCount / midiNotes.length) * 100)}%`;
                 }
             });
+            
             await Promise.all(promises);
             samplesLoaded = true;
             document.getElementById('loading-screen').classList.add('hidden');
@@ -641,56 +658,122 @@
 
         function playPianoTone(midiNote, startTime, duration, volume = 0.35) {
             initAudio();
+            if (!audioCtx) return;
+            
+            // KORREKTUR 1: Duration muss immer > 0 sein
+            duration = Math.max(0.05, duration);
+            
+            // KORREKTUR 2: Mikro-Crossfade Hüllkurve (5ms Attack, 15ms Release am Ende)
+            let attackTime = 0.005;
+            let releaseTime = 0.015;
+            let holdTime = Math.max(attackTime, duration - releaseTime);
+            
             const keys = Object.keys(audioBuffers).map(Number);
-            if (keys.length === 0) { playSynthPianoTone(midiNote, startTime, duration, volume); return; }
-            let closestMidi = keys[0]; let minDiff = Math.abs(midiNote - closestMidi);
-            for (let i = 1; i < keys.length; i++) { let diff = Math.abs(midiNote - keys[i]); if (diff < minDiff) { minDiff = diff; closestMidi = keys[i]; } }
+            if (keys.length === 0) { 
+                playSynthPianoTone(midiNote, startTime, duration, volume); 
+                return; 
+            }
+            
+            let closestMidi = keys[0]; 
+            let minDiff = Math.abs(midiNote - closestMidi);
+            for (let i = 1; i < keys.length; i++) { 
+                let diff = Math.abs(midiNote - keys[i]); 
+                if (diff < minDiff) { minDiff = diff; closestMidi = keys[i]; } 
+            }
+            
             const buffer = audioBuffers[closestMidi];
-            const source = audioCtx.createBufferSource(); source.buffer = buffer;
-            source.playbackRate.setValueAtTime(Math.pow(2, (midiNote - closestMidi) / 12), startTime);
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.setValueAtTime(0, startTime);
-            gainNode.gain.linearRampToValueAtTime(volume * 1.6, startTime + 0.005);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-            source.connect(gainNode).connect(audioCtx.destination);
-            source.start(startTime); source.stop(startTime + duration);
-            activeAudioNodes.push(source);
+            if (!buffer) { 
+                playSynthPianoTone(midiNote, startTime, duration, volume); 
+                return; 
+            }
+            
+            try {
+                const source = audioCtx.createBufferSource(); 
+                source.buffer = buffer;
+                source.playbackRate.setValueAtTime(Math.pow(2, (midiNote - closestMidi) / 12), startTime);
+                
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.setValueAtTime(0, startTime);
+                gainNode.gain.linearRampToValueAtTime(volume * 1.6, startTime + attackTime);
+                gainNode.gain.setValueAtTime(volume * 1.6, startTime + holdTime);
+                gainNode.gain.linearRampToValueAtTime(0.001, startTime + duration);
+                
+                source.connect(gainNode).connect(audioCtx.destination);
+                source.start(startTime); 
+                source.stop(startTime + duration); // Exakter Stop
+                activeAudioNodes.push(source);
+            } catch (e) {
+                console.error("Fehler beim Abspielen des Samples:", e);
+                playSynthPianoTone(midiNote, startTime, duration, volume);
+            }
         }
 
         function playSynthPianoTone(midiNote, startTime, duration, volume = 0.35) {
-            const freq = mToFreq(midiNote); const now = startTime;
-            const masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0, now);
-            masterGain.gain.linearRampToValueAtTime(volume, now + 0.006);
-            masterGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-            masterGain.connect(audioCtx.destination);
-            const hammerOsc = audioCtx.createOscillator(); const hammerGain = audioCtx.createGain();
-            hammerOsc.type = 'sine'; hammerOsc.frequency.setValueAtTime(freq * 5.7, now);
-            hammerGain.gain.setValueAtTime(volume * 0.45, now);
-            hammerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
-            hammerOsc.connect(hammerGain).connect(masterGain);
-            hammerOsc.start(now); hammerOsc.stop(now + 0.03);
-            activeAudioNodes.push(hammerOsc);
-            [-3.5, 0, 3.5].forEach(detune => {
-                [{m:1.0,w:0.55,d:1.0,t:'sine'},{m:2.0,w:0.28,d:0.65,t:'sine'},{m:3.0,w:0.16,d:0.45,t:'sine'},{m:4.0,w:0.09,d:0.30,t:'sine'},{m:5.0,w:0.04,d:0.18,t:'triangle'}].forEach(h => {
-                    const osc = audioCtx.createOscillator(); const oscGain = audioCtx.createGain();
-                    osc.type = h.t; osc.frequency.setValueAtTime(freq * h.m, now); osc.detune.setValueAtTime(detune, now);
-                    const decay = duration * h.d;
-                    oscGain.gain.setValueAtTime(h.w, now); oscGain.gain.exponentialRampToValueAtTime(0.001, now + decay);
-                    osc.connect(oscGain).connect(masterGain); osc.start(now); osc.stop(now + decay);
-                    activeAudioNodes.push(osc);
+            if (!audioCtx) return;
+            const freq = mToFreq(midiNote); 
+            const now = startTime;
+            duration = Math.max(0.05, duration);
+            
+            // Mikro-Crossfade Parameter
+            let attackTime = 0.005;
+            let releaseTime = 0.015;
+            let holdTime = Math.max(attackTime, duration - releaseTime);
+            
+            try {
+                const masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(0, now);
+                masterGain.gain.linearRampToValueAtTime(volume, now + attackTime);
+                masterGain.gain.setValueAtTime(volume, now + holdTime);
+                masterGain.gain.linearRampToValueAtTime(0, now + duration);
+                masterGain.connect(audioCtx.destination);
+
+                const hammerOsc = audioCtx.createOscillator(); 
+                const hammerGain = audioCtx.createGain();
+                hammerOsc.type = 'sine'; 
+                hammerOsc.frequency.setValueAtTime(freq * 5.7, now);
+                hammerGain.gain.setValueAtTime(volume * 0.45, now);
+                hammerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+                hammerOsc.connect(hammerGain).connect(masterGain);
+                hammerOsc.start(now); 
+                hammerOsc.stop(now + 0.03);
+                activeAudioNodes.push(hammerOsc);
+
+                [-3.5, 0, 3.5].forEach(detune => {
+                    [{m:1.0,w:0.55,d:1.0,t:'sine'},{m:2.0,w:0.28,d:0.65,t:'sine'},{m:3.0,w:0.16,d:0.45,t:'sine'},{m:4.0,w:0.09,d:0.30,t:'sine'},{m:5.0,w:0.04,d:0.18,t:'triangle'}].forEach(h => {
+                        const osc = audioCtx.createOscillator(); 
+                        const oscGain = audioCtx.createGain();
+                        osc.type = h.t; 
+                        osc.frequency.setValueAtTime(freq * h.m, now); 
+                        osc.detune.setValueAtTime(detune, now);
+                        
+                        // KORREKTUR 3: Keine frühen Releases für Harmonics. Die MasterGain-Hüllkurve regelt das.
+                        oscGain.gain.setValueAtTime(h.w, now);
+                        
+                        osc.connect(oscGain).connect(masterGain); 
+                        osc.start(now); 
+                        osc.stop(now + duration); // Exakter Stop zum Notenende
+                        activeAudioNodes.push(osc);
+                    });
                 });
-            });
+            } catch (e) {
+                console.error("Synth Fehler:", e);
+            }
         }
 
         function playMetronomeClick(startTime, isDownbeat) {
-            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(isDownbeat ? 850 : 550, startTime);
-            gainNode.gain.setValueAtTime(0.15, startTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.04);
-            osc.connect(gainNode).connect(audioCtx.destination);
-            osc.start(startTime); osc.stop(startTime + 0.05);
-            activeAudioNodes.push(osc);
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator(); 
+                const gainNode = audioCtx.createGain();
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(isDownbeat ? 850 : 550, startTime);
+                gainNode.gain.setValueAtTime(0.15, startTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.04);
+                osc.connect(gainNode).connect(audioCtx.destination);
+                osc.start(startTime); 
+                osc.stop(startTime + 0.05);
+                activeAudioNodes.push(osc);
+            } catch (e) {}
         }
 
         function triggerVisualMetronome(startAudioTime) {
@@ -698,6 +781,7 @@
             const dots = document.querySelectorAll('.metronome-dot');
             let beat = 0;
             const tick = () => {
+                if (!audioCtx) return;
                 const now = audioCtx.currentTime;
                 if (now >= startAudioTime - 0.05) {
                     dots.forEach(d => d.classList.remove('active'));
@@ -722,7 +806,7 @@
         }
 
         // =========================================================
-        // 5. RHYTHMUS GENERATOR (Mit Vorgaben-Prüfung)
+        // 5. RHYTHMUS GENERATOR
         // =========================================================
         function generateRhythmData() {
             let dictation = [];
@@ -859,7 +943,7 @@
                     document.getElementById('btn-melody-orient').onclick = () => {
                         stopAllAudio(); initAudio();
                         let tEnd = playProceduralCadence(task.melodyData.key, audioCtx.currentTime + 0.05) + 0.2;
-                        playPianoTone(firstNote.midi, tEnd, 1.5, 0.4); // Kurz zur Orientierung
+                        playPianoTone(firstNote.midi, tEnd, 1.5, 0.4);
                     };
                 }
                 setupDiktatStepUI();
@@ -893,6 +977,7 @@
         function unlockMobileAudio() {
             initAudio();
             try {
+                if (!audioCtx) return;
                 const buffer = audioCtx.createBuffer(1, 1, 22050);
                 const source = audioCtx.createBufferSource();
                 source.buffer = buffer; source.connect(audioCtx.destination); source.start(0);
@@ -923,8 +1008,9 @@
             
             let gap = 0.6; 
             
+            // KORREKTUR 4: gap exakt einhalten, kein -0.02
             task.offsets.forEach((offset, i) => { 
-                playPianoTone(task.rootNote + offset, now + (i * gap), gap - 0.02, 0.35); 
+                playPianoTone(task.rootNote + offset, now + (i * gap), gap, 0.35); 
             });
             
             let simStart = now + (task.offsets.length * gap) + 0.5;
@@ -959,12 +1045,11 @@
                 const task = quizQuestions[currentIdx];
                 let cadenceDuration = 0;
                 
-                // NEU: Anfangston im 1. Durchgang nach Kadenz für 1/2 Note spielen
                 if (task.type === 'melody' && currentDiktatStep === 0) {
                     now = playProceduralCadence(task.melodyData.key, now) + 0.2;
                     let firstNoteMidi = task.melodyData.notes[0].midi;
                     playPianoTone(firstNoteMidi, now, 2.0, 0.4); // Halbe Note = 2 Sekunden
-                    now += 2.0 + 0.3; // Halbe Note + kurze Pause
+                    now += 2.0 + 0.3; 
                     cadenceDuration = 3.6 + 2.3; 
                 }
                 
@@ -979,8 +1064,8 @@
                         task.rhythmData[barIdx].forEach(fig => {
                             fig.offsets.forEach((off, i) => { 
                                 let dur = (i === fig.offsets.length - 1) ? fig.duration - off : fig.offsets[i+1] - off;
-                                let noteDur = Math.max(0.1, dur - 0.02);
-                                playPianoTone(task.playMidi, bStart + fig.startBeat + off, noteDur, 0.3); 
+                                // KORREKTUR 5: duration exakt, kein -0.02
+                                playPianoTone(task.playMidi, bStart + fig.startBeat + off, dur, 0.3); 
                             });
                         });
                     });
@@ -988,7 +1073,8 @@
                     activeBars.forEach((barIdx, pos) => {
                         let bStart = startPlayback + (pos * 4.0);
                         let barNotes = task.melodyData.notes.filter(n => n.bar === barIdx);
-                        barNotes.forEach(note => { playPianoTone(note.midi, bStart + note.startBeat, note.duration - 0.03, 0.35); });
+                        // KORREKTUR 6: duration exakt, kein -0.03
+                        barNotes.forEach(note => { playPianoTone(note.midi, bStart + note.startBeat, note.duration, 0.35); });
                     });
                 }
 
@@ -1084,8 +1170,8 @@
                 bar.forEach(fig => { 
                     fig.offsets.forEach((off, i) => { 
                         let dur = (i === fig.offsets.length - 1) ? fig.duration - off : fig.offsets[i+1] - off;
-                        let noteDur = Math.max(0.1, dur - 0.02);
-                        playPianoTone(task.playMidi, bStart + fig.startBeat + off, noteDur, 0.3); 
+                        // KORREKTUR: duration exakt, kein -0.02
+                        playPianoTone(task.playMidi, bStart + fig.startBeat + off, dur, 0.3); 
                     }); 
                 });
             });
@@ -1098,7 +1184,8 @@
             for (let c = 0; c < 4; c++) { playMetronomeClick(t + c, c === 0); }
             triggerVisualMetronome(t);
             let startPlayback = t + 4.0;
-            melodyData.notes.forEach(note => { playPianoTone(note.midi, startPlayback + (note.bar * 4.0) + note.startBeat, note.duration - 0.03, 0.35); });
+            // KORREKTUR: duration exakt, kein -0.03
+            melodyData.notes.forEach(note => { playPianoTone(note.midi, startPlayback + (note.bar * 4.0) + note.startBeat, note.duration, 0.35); });
         }
 
         function renderRhythmAbc(data) {
